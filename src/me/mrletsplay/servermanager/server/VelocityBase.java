@@ -8,6 +8,7 @@ import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
+import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 
@@ -42,7 +43,7 @@ public class VelocityBase {
 	
 	public static void start() {
 		if(isRunning()) throw new FriendlyException("Velocity is already running");
-		velocityProcess = JavaProcess.startProcess(getVelocityJarFile(), getFolder(), 512, null);
+		velocityProcess = JavaProcess.startProcess(JavaVersion.SYSTEM, getVelocityJarFile(), getFolder(), 512, null);
 		velocityProcess.setOnStopped(() -> {
 			velocityProcess = null;
 		});

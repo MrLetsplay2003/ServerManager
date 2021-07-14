@@ -5,12 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.mrletsplay.servermanager.server.MinecraftServer;
-import me.mrletsplay.servermanager.util.meta.MetadataHelper;
-import me.mrletsplay.servermanager.util.meta.ServerMetadata;
+import me.mrletsplay.servermanager.server.meta.MetadataHelper;
+import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.webinterface.RequestHandler;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.servermanager.webinterface.page.ConsolePage;
 import me.mrletsplay.servermanager.webinterface.page.CreateServerPage;
+import me.mrletsplay.servermanager.webinterface.page.JavaVersionsPage;
 import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SettingsPage;
@@ -32,6 +33,7 @@ public class ServerManager {
 		
 		WebinterfacePageCategory generalCategory = Webinterface.createCategory("Server Manager");
 		generalCategory.addPage(new OverviewPage());
+		generalCategory.addPage(new JavaVersionsPage());
 		generalCategory.addPage(new SettingsPage());
 		generalCategory.addPage(new CreateServerPage());
 		generalCategory.addPage(new SetupVelocityPage());

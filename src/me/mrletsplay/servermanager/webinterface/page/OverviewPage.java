@@ -8,9 +8,12 @@ import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.ConfirmAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.RedirectAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.StringValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfacePageElement;
@@ -57,7 +60,7 @@ public class OverviewPage extends WebinterfacePage {
 				
 				WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown");
 				shutdown.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-				shutdown.setOnClickAction(new SendJSAction("server-manager", "stopVelocity", null).onSuccess(new ReloadPageAction()));
+				shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "stopVelocity", null).onSuccess(new ReloadPageAction())));
 				els.add(shutdown);
 			}
 			
@@ -119,8 +122,13 @@ public class OverviewPage extends WebinterfacePage {
 				
 				WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown");
 				shutdown.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-				shutdown.setOnClickAction(new SendJSAction("server-manager", "stopServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction()));
+				shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "stopServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction())));
 				sc.addElement(shutdown);
+				
+				WebinterfaceButton delete = new WebinterfaceButton("Delete");
+				delete.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
+				delete.setOnClickAction(new ConfirmAction(new SendJSAction("server-manager", "deleteServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction())));
+				sc.addElement(delete);
 				
 				ss.add(sc);
 			}

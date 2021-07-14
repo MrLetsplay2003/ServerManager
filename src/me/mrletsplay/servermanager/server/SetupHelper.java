@@ -16,9 +16,10 @@ import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.ServerManager;
 import me.mrletsplay.servermanager.process.JavaProcess;
+import me.mrletsplay.servermanager.process.JavaVersion;
+import me.mrletsplay.servermanager.server.meta.MetadataHelper;
+import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.PaperAPI;
-import me.mrletsplay.servermanager.util.meta.MetadataHelper;
-import me.mrletsplay.servermanager.util.meta.ServerMetadata;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 
@@ -43,7 +44,7 @@ public class SetupHelper {
 		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
-		JavaProcess velocityProcess = JavaProcess.startProcess(velocityJar, velocityFolder, 512, null);
+		JavaProcess velocityProcess = JavaProcess.startProcess(JavaVersion.SYSTEM, velocityJar, velocityFolder, 512, null);
 		velocityProcess.sendLine("shutdown");
 		try {
 			velocityProcess.getProcess().waitFor();
@@ -100,7 +101,7 @@ public class SetupHelper {
 		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
-		JavaProcess paperProcess = JavaProcess.startProcess(paperJar, serverFolder, 1024, null, "nogui");
+		JavaProcess paperProcess = JavaProcess.startProcess(JavaVersion.SYSTEM, paperJar, serverFolder, 1024, null, "nogui");
 		paperProcess.sendLine("stop");
 		try {
 			paperProcess.getProcess().waitFor();
@@ -129,6 +130,7 @@ public class SetupHelper {
 		Map<String, Object> paper = server.loadPaperConfig();
 		Map<String, Object> settings = (Map<String, Object>) paper.get("settings");
 		Map<String, Object> velocitySupport = (Map<String, Object>) settings.get("velocity-support");
+		// TODO: doesn't work for MC < 1.12/1.13
 		velocitySupport.put("enabled", true);
 		velocitySupport.put("secret", forwardingSecret);
 		velocitySupport.put("online-mode", true);

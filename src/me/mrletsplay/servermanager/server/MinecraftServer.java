@@ -16,7 +16,8 @@ import org.yaml.snakeyaml.nodes.Tag;
 import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
-import me.mrletsplay.servermanager.util.meta.ServerMetadata;
+import me.mrletsplay.servermanager.process.JavaVersion;
+import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 
 public class MinecraftServer {
 	
@@ -104,7 +105,7 @@ public class MinecraftServer {
 	
 	public void start() {
 		if(isRunning()) return;
-		process = JavaProcess.startProcess(new File(serverFolder, "paper.jar"), serverFolder, 2048, AIKARS_FLAGS, "nogui");
+		process = JavaProcess.startProcess(JavaVersion.SYSTEM, new File(serverFolder, "paper.jar"), serverFolder, 2048, AIKARS_FLAGS, "nogui");
 		process.setOnStopped(() -> {
 			process = null;
 		});

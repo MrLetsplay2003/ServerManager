@@ -1,4 +1,4 @@
-package me.mrletsplay.servermanager.util.meta;
+package me.mrletsplay.servermanager.server.meta;
 
 import java.io.File;
 import java.io.IOException;

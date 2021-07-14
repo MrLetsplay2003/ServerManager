@@ -1,4 +1,4 @@
-package me.mrletsplay.servermanager.util.meta;
+package me.mrletsplay.servermanager.server.meta;
 
 import me.mrletsplay.mrcore.json.converter.JSONConstructor;
 import me.mrletsplay.mrcore.json.converter.JSONConvertible;

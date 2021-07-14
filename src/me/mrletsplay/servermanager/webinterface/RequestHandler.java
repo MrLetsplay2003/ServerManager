@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import me.mrletsplay.mrcore.http.HttpGet;
+import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.json.JSONArray;
 import me.mrletsplay.mrcore.json.JSONObject;
 import me.mrletsplay.mrcore.misc.FriendlyException;
@@ -22,7 +23,7 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.action.WebinterfaceRespon
 
 public class RequestHandler implements WebinterfaceActionHandler {
 	
-	private static final Pattern ID_PATTERN = Pattern.compile("[a-z0-9._-]{1,32}");
+	private static final Pattern ID_PATTERN = Pattern.compile("[a-z0-9_-]{1,32}");
 	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "setSetting")
 	public WebinterfaceResponse setSetting(WebinterfaceRequestEvent event) {
@@ -144,6 +145,18 @@ public class RequestHandler implements WebinterfaceActionHandler {
 			s.start();
 		}
 		
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "deleteServer")
+	public WebinterfaceResponse deleteServer(WebinterfaceRequestEvent event) {
+		String server = event.getRequestData().getString("value");
+		MinecraftServer s = ServerManager.getServer(server);
+		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		if(s.isRunning()) s.stop();
+		System.out.println("DELETE " + s.getServerFolder().getAbsolutePath());
+		IOUtils.deleteFile(s.getServerFolder());
+		ServerManager.getServers().remove(s);
 		return WebinterfaceResponse.success();
 	}
 

@@ -3,3 +3,5 @@
 /data/
 /cfg/
 /logs/
+/run/
+/dependency-reduced-pom.xml

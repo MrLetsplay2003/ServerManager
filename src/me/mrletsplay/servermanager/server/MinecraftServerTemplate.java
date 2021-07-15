@@ -10,7 +10,7 @@ public class MinecraftServerTemplate {
 		this.path = path;
 	}
 	
-	public String getId() {
+	public String getID() {
 		return id;
 	}
 

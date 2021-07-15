@@ -30,7 +30,6 @@ public class JavaProcess {
 				String line;
 				while(this.process != null && this.process.isAlive() && (line = reader.readLine()) != null) {
 					synchronized(logHistory) {
-						System.out.println(line);
 						logHistory.add(line);
 						if(logHistory.size() > 500) logHistory.remove(0);
 					}
@@ -104,7 +103,7 @@ public class JavaProcess {
 	
 	public static JavaProcess startProcess(JavaVersion javaVersion, File jarFile, File workingDir, int memoryLimitMB, List<String> javaOptions, String... arguments) {
 		List<String> command = new ArrayList<>();
-		command.add("java");
+		command.add(javaVersion.getJavaPath());
 		
 		if(javaOptions != null) command.addAll(javaOptions);
 		command.add("-Xmx" + memoryLimitMB + "M");

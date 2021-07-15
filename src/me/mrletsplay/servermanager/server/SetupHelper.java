@@ -19,6 +19,7 @@ import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
+import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
@@ -69,7 +70,7 @@ public class SetupHelper {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, String version) {
+	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, String version, JavaVersion javaVersion) {
 		List<Integer> ports = ServerManager.getServers().stream()
 				.map(s -> s.getPort())
 				.collect(Collectors.toList());
@@ -90,9 +91,9 @@ public class SetupHelper {
 			}
 		}
 		
-		IOUtils.writeBytes(new File(serverFolder, "eula.txt"), "eula=true".getBytes(StandardCharsets.UTF_8));
+		IOUtils.writeBytes(FileHelper.getEULAFile(serverFolder), "eula=true".getBytes(StandardCharsets.UTF_8));
 		
-		File paperJar = new File(serverFolder, "paper.jar");
+		File paperJar = FileHelper.getServerJarFile(serverFolder);
 		String latestPaperURL = PaperAPI.getLatestBuildURL(version);
 		try {
 			new HttpGet(latestPaperURL).execute().transferTo(paperJar);
@@ -101,7 +102,7 @@ public class SetupHelper {
 		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
-		JavaProcess paperProcess = JavaProcess.startProcess(JavaVersion.SYSTEM, paperJar, serverFolder, 1024, null, "nogui");
+		JavaProcess paperProcess = JavaProcess.startProcess(javaVersion, paperJar, serverFolder, 1024, null, "nogui");
 		paperProcess.sendLine("stop");
 		try {
 			paperProcess.getProcess().waitFor();
@@ -117,7 +118,7 @@ public class SetupHelper {
 		velocityConfig.save();
 		velocityConfig.close();
 		
-		ServerMetadata m = new ServerMetadata(id, name, version);
+		ServerMetadata m = new ServerMetadata(id, name, version, javaVersion);
 		MinecraftServer server = new MinecraftServer(serverFolder, m);
 		server.loadServerProperties()
 			.set("server-port", String.valueOf(port))

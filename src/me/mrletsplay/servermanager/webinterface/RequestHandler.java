@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+
 import me.mrletsplay.mrcore.http.HttpGet;
 import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.json.JSONArray;
 import me.mrletsplay.mrcore.json.JSONObject;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.ServerManager;
+import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.SetupHelper;
 import me.mrletsplay.servermanager.server.VelocityBase;
@@ -51,9 +54,12 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		String id = v.getString("id");
 		String name = v.getString("name");
 		String version = v.getString("version");
+		String jVersion = v.getString("javaVersion");
 		if(id.isBlank() || name.isBlank()) return WebinterfaceResponse.error("Both id and name must be set");
 		if(!ID_PATTERN.matcher(id).matches()) return WebinterfaceResponse.error("ID must match " + ID_PATTERN.pattern());
-		SetupHelper.createNewServer(false, id, name, version);
+		JavaVersion javaVersion = JavaVersion.getJavaVersion(jVersion);
+		if(javaVersion == null) return WebinterfaceResponse.error("Invalid Java version");
+		SetupHelper.createNewServer(false, id, name, version, javaVersion);
 		return WebinterfaceResponse.success();
 	}
 	
@@ -132,6 +138,10 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		String version = v.getString("version");
 		MinecraftServer s = ServerManager.getServer(server);
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		
+		boolean running = s.isRunning();
+		if(running) s.stop();
+		
 		File paperJar = new File(s.getServerFolder(), "paper.jar");
 		String latestPaperURL = PaperAPI.getLatestBuildURL(version);
 		try {
@@ -140,10 +150,23 @@ public class RequestHandler implements WebinterfaceActionHandler {
 			throw new FriendlyException("Failed to download Paper", e);
 		}
 		
-		if(s.isRunning()) {
-			s.stop();
-			s.start();
-		}
+		s.getMetadata().setVersion(version);
+		s.saveMetadata();
+		
+		if(running) s.start();
+		
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateServerJavaVersion")
+	public WebinterfaceResponse updateServerJavaVersion(WebinterfaceRequestEvent event) {
+		JSONObject v = event.getRequestData().getJSONObject("value");
+		String server = v.getString("server");
+		String version = v.getString("javaVersion");
+		MinecraftServer s = ServerManager.getServer(server);
+		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		s.getMetadata().setJavaVersion(version);
+		s.saveMetadata();
 		
 		return WebinterfaceResponse.success();
 	}
@@ -154,9 +177,36 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		MinecraftServer s = ServerManager.getServer(server);
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		if(s.isRunning()) s.stop();
-		System.out.println("DELETE " + s.getServerFolder().getAbsolutePath());
 		IOUtils.deleteFile(s.getServerFolder());
 		ServerManager.getServers().remove(s);
+		CommentedFileConfig c = VelocityBase.loadVelocityConfig();
+		c.remove("servers." + server);
+		c.save();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addJavaVersion")
+	public WebinterfaceResponse addJavaVersion(WebinterfaceRequestEvent event) {
+		JSONObject v = event.getRequestData().getJSONObject("value");
+		String id = v.getString("id");
+		String name = v.getString("name");
+		String javaPath = v.getString("javaPath");
+		if(JavaVersion.getJavaVersion(id) != null) return WebinterfaceResponse.error("A Java version with that ID already exists");
+		if(!ID_PATTERN.matcher(id).matches()) return WebinterfaceResponse.error("ID must match " + ID_PATTERN.pattern());
+		File javaFile = new File(javaPath);
+		if(!javaFile.exists() || !javaFile.isFile()) return WebinterfaceResponse.error("The Java path must point to the Java binary");
+		JavaVersion.addJavaVersion(new JavaVersion(id, name, javaPath));
+		ServerManager.saveJavaVersions();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "removeJavaVersion")
+	public WebinterfaceResponse removeJavaVersion(WebinterfaceRequestEvent event) {
+		String id = event.getRequestData().getString("value");
+		JavaVersion v = JavaVersion.getJavaVersion(id);
+		if(v == null || id.equals(JavaVersion.SYSTEM.getID())) return WebinterfaceResponse.error("Invalid Java version");
+		JavaVersion.removeJavaVersion(v);
+		ServerManager.saveJavaVersions();
 		return WebinterfaceResponse.success();
 	}
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.mrletsplay.servermanager.ServerManager;
+import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.webinterfaceapi.http.request.HttpRequestContext;
@@ -47,19 +48,39 @@ public class ServerSettingsPage extends WebinterfacePage {
 			}
 			els.add(ver);
 			
-			WebinterfaceButton upd = new WebinterfaceButton("Update");
+			WebinterfaceButton upd = new WebinterfaceButton("Update Paper Version");
 			ObjectValue v = new ObjectValue();
 			v.put("server", new StringValue(serverID));
 			v.put("version", new ElementValue(ver));
 			upd.setOnClickAction(new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()));
 			els.add(upd);
 			
-			WebinterfaceInputField mem = new WebinterfaceInputField();
+			WebinterfaceInputField mem = new WebinterfaceInputField(String.valueOf(server.getMetadata().getMemoryLimitMB()));
+			mem.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
+			els.add(mem);
+			
+			WebinterfaceButton updMem = new WebinterfaceButton("Update Memory");
 			ObjectValue v2 = new ObjectValue();
 			v2.put("server", new StringValue(serverID));
 			v2.put("memory", new ElementValue(mem));
-			mem.setOnChangeAction(new SendJSAction("server-manager", "updateServerMemory", v2).onSuccess(new ReloadPageAction()));
-			els.add(mem);
+			updMem.setOnClickAction(new SendJSAction("server-manager", "updateServerMemory", v2).onSuccess(new ReloadPageAction()));
+			els.add(updMem);
+			
+			String serverJavaVersion = server.getMetadata().getJavaVersion();
+			
+			WebinterfaceSelect jVer = new WebinterfaceSelect();
+			jVer.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
+			for(JavaVersion jv : JavaVersion.getJavaVersions()) {
+				jVer.addOption(jv.getName(), jv.getID(), jv.getID().equals(serverJavaVersion));
+			}
+			els.add(jVer);
+			
+			WebinterfaceButton updJ = new WebinterfaceButton("Update Java Version");
+			ObjectValue v3 = new ObjectValue();
+			v3.put("server", new StringValue(serverID));
+			v3.put("javaVersion", new ElementValue(ver));
+			updJ.setOnClickAction(new SendJSAction("server-manager", "updateJavaVersion", v3).onSuccess(new ReloadPageAction()));
+			els.add(updJ);
 			
 			return els;
 		});

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.mrletsplay.servermanager.ServerManager;
+import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
@@ -107,6 +108,15 @@ public class OverviewPage extends WebinterfacePage {
 				WebinterfaceText port = new WebinterfaceText(String.valueOf(server.getPort()));
 				port.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				sc.addElement(port);
+
+				WebinterfaceTitleText jVerT = new WebinterfaceTitleText("Java Version");
+				jVerT.getStyle().setProperty("white-space", "nowrap");
+				sc.addElement(jVerT);
+				
+				JavaVersion j = server.getJavaVersion();
+				WebinterfaceText jVer = new WebinterfaceText(j == null ? "[MISSING]" : j.getName());
+				jVer.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
+				sc.addElement(jVer);
 				
 				sc.addElement(new WebinterfaceVerticalSpacer("30px"));
 				
@@ -114,6 +124,11 @@ public class OverviewPage extends WebinterfacePage {
 				console.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 				console.setOnClickAction(new RedirectAction("/sm/console?server=" + server.getID()));
 				sc.addElement(console);
+				
+				WebinterfaceButton serverSettings = new WebinterfaceButton("Settings");
+				serverSettings.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
+				serverSettings.setOnClickAction(new RedirectAction("/sm/server-settings?server=" + server.getID()));
+				sc.addElement(serverSettings);
 				
 				WebinterfaceButton start = new WebinterfaceButton("Start Server");
 				start.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
@@ -127,7 +142,7 @@ public class OverviewPage extends WebinterfacePage {
 				
 				WebinterfaceButton delete = new WebinterfaceButton("Delete");
 				delete.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-				delete.setOnClickAction(new ConfirmAction(new SendJSAction("server-manager", "deleteServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction())));
+				delete.setOnClickAction(new ConfirmAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "deleteServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction()))));
 				sc.addElement(delete);
 				
 				ss.add(sc);

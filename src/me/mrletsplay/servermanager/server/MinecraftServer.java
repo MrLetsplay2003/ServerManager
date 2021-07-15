@@ -17,7 +17,9 @@ import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
+import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
+import me.mrletsplay.servermanager.util.FileHelper;
 
 public class MinecraftServer {
 	
@@ -69,6 +71,10 @@ public class MinecraftServer {
 		return metadata.getVersion();
 	}
 	
+	public void saveMetadata() {
+		MetadataHelper.saveMetadata(FileHelper.getMetadataFile(serverFolder), metadata);
+	}
+	
 	public ServerMetadata getMetadata() {
 		return metadata;
 	}
@@ -87,12 +93,12 @@ public class MinecraftServer {
 	}
 	
 	public ServerPropertiesFile loadServerProperties() {
-		return new ServerPropertiesFile(new File(serverFolder, "server.properties"));
+		return new ServerPropertiesFile(FileHelper.getServerPropertiesFile(serverFolder));
 	}
 	
 	public Map<String, Object> loadPaperConfig() {
 		try {
-			Map<String, Object> map = new Yaml().load(new FileReader(new File(serverFolder, "paper.yml")));
+			Map<String, Object> map = new Yaml().load(new FileReader(FileHelper.getPaperConfigFile(serverFolder)));
 			return map;
 		} catch (FileNotFoundException e) {
 			throw new FriendlyException("Failed to load paper config", e);
@@ -100,12 +106,22 @@ public class MinecraftServer {
 	}
 	
 	public void savePaperConfig(Map<String, Object> map) {
-		IOUtils.writeBytes(new File(serverFolder, "paper.yml"), new Yaml().dumpAs(map, Tag.MAP, FlowStyle.BLOCK).getBytes(StandardCharsets.UTF_8));
+		IOUtils.writeBytes(FileHelper.getPaperConfigFile(serverFolder), new Yaml().dumpAs(map, Tag.MAP, FlowStyle.BLOCK).getBytes(StandardCharsets.UTF_8));
+	}
+	
+	public JavaVersion getJavaVersion() {
+		return JavaVersion.getJavaVersion(metadata.getJavaVersion());
+	}
+	
+	public boolean hasJavaVersion() {
+		return getJavaVersion() != null;
 	}
 	
 	public void start() {
 		if(isRunning()) return;
-		process = JavaProcess.startProcess(JavaVersion.SYSTEM, new File(serverFolder, "paper.jar"), serverFolder, 2048, AIKARS_FLAGS, "nogui");
+		JavaVersion j = getJavaVersion();
+		if(j == null) return;
+		process = JavaProcess.startProcess(j, FileHelper.getServerJarFile(serverFolder), serverFolder, metadata.getMemoryLimitMB(), AIKARS_FLAGS, "nogui");
 		process.setOnStopped(() -> {
 			process = null;
 		});

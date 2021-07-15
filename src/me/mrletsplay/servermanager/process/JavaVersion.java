@@ -47,6 +47,10 @@ public class JavaVersion implements JSONConvertible {
 		return javaPath;
 	}
 	
+	public boolean isSystemDefault() {
+		return id.equals("system");
+	}
+	
 	public static void addJavaVersion(JavaVersion version) {
 		JAVA_VERSIONS.add(version);
 	}
@@ -55,8 +59,8 @@ public class JavaVersion implements JSONConvertible {
 		JAVA_VERSIONS.remove(version);
 	}
 	
-	public static void getJavaVersion(String id) {
-		JAVA_VERSIONS.stream()
+	public static JavaVersion getJavaVersion(String id) {
+		return JAVA_VERSIONS.stream()
 			.filter(v -> v.getID().equals(id))
 			.findFirst().orElse(null);
 	}

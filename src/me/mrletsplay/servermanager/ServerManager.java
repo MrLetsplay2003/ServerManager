@@ -1,14 +1,26 @@
 package me.mrletsplay.servermanager;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import me.mrletsplay.mrcore.io.IOUtils;
+import me.mrletsplay.mrcore.json.JSONArray;
+import me.mrletsplay.mrcore.json.JSONObject;
+import me.mrletsplay.mrcore.json.converter.JSONConverter;
+import me.mrletsplay.mrcore.misc.FriendlyException;
+import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
+import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.webinterface.RequestHandler;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
+import me.mrletsplay.servermanager.webinterface.page.AddJavaVersionPage;
 import me.mrletsplay.servermanager.webinterface.page.ConsolePage;
 import me.mrletsplay.servermanager.webinterface.page.CreateServerPage;
 import me.mrletsplay.servermanager.webinterface.page.JavaVersionsPage;
@@ -39,8 +51,29 @@ public class ServerManager {
 		generalCategory.addPage(new SetupVelocityPage());
 		generalCategory.addPage(new ConsolePage());
 		generalCategory.addPage(new ServerSettingsPage());
+		generalCategory.addPage(new AddJavaVersionPage());
 		
+		loadJavaVersions();
 		loadServers();
+	}
+	
+	private static void loadJavaVersions() {
+		try {
+			File f = new File(Webinterface.getConfigurationDirectory(), "java-versions.json");
+			if(!f.exists()) return;
+			new JSONArray(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8)).stream()
+				.map(o -> JSONConverter.decodeObject((JSONObject) o, JavaVersion.class))
+				.forEach(JavaVersion::addJavaVersion);
+		} catch (IOException e) {
+			throw new FriendlyException("Failed to load Java versions", e);
+		}
+	}
+	
+	public static void saveJavaVersions() {
+		IOUtils.writeBytes(new File(Webinterface.getConfigurationDirectory(), "java-versions.json"), JavaVersion.getJavaVersions().stream()
+				.filter(v -> !v.isSystemDefault())
+				.map(v -> v.toJSON(false))
+				.collect(Collectors.toCollection(JSONArray::new)).toFancyString().getBytes(StandardCharsets.UTF_8));
 	}
 	
 	private static void loadServers() {
@@ -48,7 +81,7 @@ public class ServerManager {
 		if(!serversFolder.exists() || !serversFolder.isDirectory()) return;
 		for(File s : serversFolder.listFiles()) {
 			if(!s.isDirectory()) continue;
-			File metaFile = new File(s, "server-manager.json");
+			File metaFile = FileHelper.getMetadataFile(s);
 			if(!metaFile.exists()) continue;
 			ServerMetadata d = MetadataHelper.loadMetadata(metaFile);
 			servers.add(new MinecraftServer(s, d));

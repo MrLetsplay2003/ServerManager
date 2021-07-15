@@ -17,6 +17,7 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ElementValue
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ObjectValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceInputField;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfacePageElement;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceSelect;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.GridLayout;
 
@@ -30,36 +31,41 @@ public class CreateServerPage extends WebinterfacePage {
 		s.addLayoutOptions(new GridLayout("1fr"));
 		s.addTitle("Create a new server");
 		
-		WebinterfaceInputField id = new WebinterfaceInputField("ID");
-		s.addElement(id);
-		
-		WebinterfaceInputField name = new WebinterfaceInputField("Name");
-		s.addElement(name);
-		
-		WebinterfaceSelect version = new WebinterfaceSelect();
-		List<String> versions = new ArrayList<>(PaperAPI.getPaperVersions());
-		Collections.reverse(versions);
-		for(String v : versions) {
-			version.addOption("Paper " + v, v);
-		}
-		s.addElement(version);
-		
-		WebinterfaceSelect javaVersion = new WebinterfaceSelect();
-		for(JavaVersion v : JavaVersion.getJavaVersions()) {
-			javaVersion.addOption(v.getName(), v.getID());
-		}
-		s.addElement(javaVersion);
-		
-		WebinterfaceButton b = new WebinterfaceButton("Install");
-		ObjectValue v = new ObjectValue();
-		v.put("id", new ElementValue(id));
-		v.put("name", new ElementValue(name));
-		v.put("version", new ElementValue(version));
-		v.put("javaVersion", new ElementValue(javaVersion));
-		b.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "createServer", v)
-				.onSuccess(new RedirectAction("/"))
-				.onError(new HideLoadingScreenAction())));
-		s.addElement(b);
+		s.addDynamicElements(() -> {
+			List<WebinterfacePageElement> els = new ArrayList<>();
+			WebinterfaceInputField id = new WebinterfaceInputField("ID");
+			els.add(id);
+			
+			WebinterfaceInputField name = new WebinterfaceInputField("Name");
+			els.add(name);
+			
+			WebinterfaceSelect version = new WebinterfaceSelect();
+			List<String> versions = new ArrayList<>(PaperAPI.getPaperVersions());
+			Collections.reverse(versions);
+			for(String v : versions) {
+				version.addOption("Paper " + v, v);
+			}
+			els.add(version);
+			
+			WebinterfaceSelect javaVersion = new WebinterfaceSelect();
+			for(JavaVersion v : JavaVersion.getJavaVersions()) {
+				javaVersion.addOption(v.getName(), v.getID());
+			}
+			els.add(javaVersion);
+			
+			WebinterfaceButton b = new WebinterfaceButton("Install");
+			ObjectValue v = new ObjectValue();
+			v.put("id", new ElementValue(id));
+			v.put("name", new ElementValue(name));
+			v.put("version", new ElementValue(version));
+			v.put("javaVersion", new ElementValue(javaVersion));
+			b.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "createServer", v)
+					.onSuccess(new RedirectAction("/"))
+					.onError(new HideLoadingScreenAction())));
+			els.add(b);
+			
+			return els;
+		});
 		
 		addSection(s);
 	}

@@ -23,6 +23,7 @@ import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.servermanager.webinterface.page.AddJavaVersionPage;
 import me.mrletsplay.servermanager.webinterface.page.ConsolePage;
 import me.mrletsplay.servermanager.webinterface.page.CreateServerPage;
+import me.mrletsplay.servermanager.webinterface.page.HostnamesPage;
 import me.mrletsplay.servermanager.webinterface.page.JavaVersionsPage;
 import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
@@ -46,6 +47,7 @@ public class ServerManager {
 		WebinterfacePageCategory generalCategory = Webinterface.createCategory("Server Manager");
 		generalCategory.addPage(new OverviewPage());
 		generalCategory.addPage(new JavaVersionsPage());
+		generalCategory.addPage(new HostnamesPage());
 		generalCategory.addPage(new SettingsPage());
 		generalCategory.addPage(new CreateServerPage());
 		generalCategory.addPage(new SetupVelocityPage());
@@ -55,6 +57,10 @@ public class ServerManager {
 		
 		loadJavaVersions();
 		loadServers();
+		
+		for(MinecraftServer server : servers) {
+			if(server.getMetadata().isAutostart()) server.start();
+		}
 	}
 	
 	private static void loadJavaVersions() {

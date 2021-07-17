@@ -49,6 +49,8 @@ public class OverviewPage extends WebinterfacePage {
 				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				els.add(onOff);
 				
+				els.add(new WebinterfaceVerticalSpacer("30px"));
+				
 				WebinterfaceButton console = new WebinterfaceButton("Open Console");
 				console.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 				console.setOnClickAction(new RedirectAction("/sm/console?server=base"));
@@ -83,19 +85,24 @@ public class OverviewPage extends WebinterfacePage {
 				sc.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("min-content", "auto"));
 				sc.addTitle(server.getName() + " (" + server.getID() + ")");
 				
-				sc.addElement(new WebinterfaceTitleText("Running"));
+				WebinterfaceTitleText onOffT = new WebinterfaceTitleText("Running");
+				onOffT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
+				sc.addElement(onOffT);
 				
 				WebinterfaceText onOff = new WebinterfaceText(server.isRunning() ? "Yes" : "No");
 				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				sc.addElement(onOff);
 				
-				sc.addElement(new WebinterfaceTitleText("Version"));
+				WebinterfaceTitleText verT = new WebinterfaceTitleText("Version");
+				verT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
+				sc.addElement(verT);
 				
 				WebinterfaceText ver = new WebinterfaceText(server.getVersion());
 				ver.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				sc.addElement(ver);
 				
 				WebinterfaceTitleText memT = new WebinterfaceTitleText("Memory Limit");
+				memT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				memT.getStyle().setProperty("white-space", "nowrap");
 				sc.addElement(memT);
 				
@@ -103,13 +110,16 @@ public class OverviewPage extends WebinterfacePage {
 				mem.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				sc.addElement(mem);
 				
-				sc.addElement(new WebinterfaceTitleText("Port"));
+				WebinterfaceTitleText portT = new WebinterfaceTitleText("Port");
+				portT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
+				sc.addElement(portT);
 				
 				WebinterfaceText port = new WebinterfaceText(String.valueOf(server.getPort()));
 				port.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				sc.addElement(port);
 
 				WebinterfaceTitleText jVerT = new WebinterfaceTitleText("Java Version");
+				jVerT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
 				jVerT.getStyle().setProperty("white-space", "nowrap");
 				sc.addElement(jVerT);
 				

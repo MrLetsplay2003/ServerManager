@@ -29,6 +29,7 @@ import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SetupVelocityPage;
+import me.mrletsplay.servermanager.webinterface.page.VelocitySettingsPage;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.config.DefaultSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageCategory;
@@ -53,6 +54,7 @@ public class ServerManager {
 		generalCategory.addPage(new SetupVelocityPage());
 		generalCategory.addPage(new ConsolePage());
 		generalCategory.addPage(new ServerSettingsPage());
+		generalCategory.addPage(new VelocitySettingsPage());
 		generalCategory.addPage(new AddJavaVersionPage());
 		
 		loadJavaVersions();
@@ -92,6 +94,11 @@ public class ServerManager {
 			ServerMetadata d = MetadataHelper.loadMetadata(metaFile);
 			servers.add(new MinecraftServer(s, d));
 		}
+	}
+	
+	public void refreshServers() {
+		servers.clear();
+		loadServers();
 	}
 	
 	public static void addServer(MinecraftServer server) {

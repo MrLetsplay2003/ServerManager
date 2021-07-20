@@ -19,6 +19,10 @@ public class FileHelper {
 		return new File(serverFolder, "paper.yml");
 	}
 	
+	public static File getSpigotConfigFile(File serverFolder) {
+		return new File(serverFolder, "spigot.yml");
+	}
+	
 	public static File getServerPropertiesFile(File serverFolder) {
 		return new File(serverFolder, "server.properties");
 	}

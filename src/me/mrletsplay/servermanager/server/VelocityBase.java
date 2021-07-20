@@ -9,6 +9,7 @@ import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
+import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 
@@ -35,6 +36,18 @@ public class VelocityBase {
 				.build();
 		config.load();
 		return config;
+	}
+	
+	public static VelocityForwardingMode getForwardingMode() {
+		CommentedFileConfig c = loadVelocityConfig();
+		return VelocityForwardingMode.getByRaw(c.get("player-info-forwarding-mode"));
+	}
+	
+	public static void setForwardingMode(VelocityForwardingMode mode) {
+		CommentedFileConfig c = loadVelocityConfig();
+		c.set("player-info-forwarding-mode", mode.getRaw());
+		c.save();
+		c.close();
 	}
 	
 	public static boolean isInstalled() {

@@ -56,6 +56,11 @@ public class OverviewPage extends WebinterfacePage {
 				console.setOnClickAction(new RedirectAction("/sm/console?server=base"));
 				els.add(console);
 				
+				WebinterfaceButton velocitySettings = new WebinterfaceButton("Settings");
+				velocitySettings.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
+				velocitySettings.setOnClickAction(new RedirectAction("/sm/velocity-settings"));
+				els.add(velocitySettings);
+				
 				WebinterfaceButton start = new WebinterfaceButton("Start Velocity");
 				start.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 				start.setOnClickAction(new SendJSAction("server-manager", "startVelocity", null).onSuccess(new ReloadPageAction()));

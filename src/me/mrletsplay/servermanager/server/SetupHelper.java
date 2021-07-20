@@ -21,6 +21,7 @@ import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 
@@ -132,7 +133,7 @@ public class SetupHelper {
 		Map<String, Object> settings = (Map<String, Object>) paper.get("settings");
 		Map<String, Object> velocitySupport = (Map<String, Object>) settings.get("velocity-support");
 		// TODO: doesn't work for MC < 1.12/1.13
-		velocitySupport.put("enabled", true);
+		velocitySupport.put("enabled", VelocityBase.getForwardingMode() == VelocityForwardingMode.MODERN); // Only enable if using modern forwarding
 		velocitySupport.put("secret", forwardingSecret);
 		velocitySupport.put("online-mode", true);
 		server.savePaperConfig(paper);

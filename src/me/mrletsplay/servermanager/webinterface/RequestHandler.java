@@ -2,6 +2,10 @@ package me.mrletsplay.servermanager.webinterface;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
@@ -17,6 +21,7 @@ import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.SetupHelper;
 import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfaceSettingsPage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.WebinterfaceActionHandler;
@@ -48,6 +53,23 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		return WebinterfaceResponse.success();
 	}
 	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "setVelocityForwardingMode")
+	public WebinterfaceResponse setVelocityForwardingMode(WebinterfaceRequestEvent event) {
+		String mode = event.getRequestData().getString("value");
+		
+		VelocityForwardingMode m;
+		try {
+			m = VelocityForwardingMode.valueOf(mode);
+		}catch(IllegalArgumentException e) {
+			return WebinterfaceResponse.error("Invalid forwarding mode");
+		}
+		VelocityBase.setForwardingMode(m);
+		for(MinecraftServer server : ServerManager.getServers()) {
+			server.updateForwardingMode(m);
+		}
+		return WebinterfaceResponse.success();
+	}
+	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "createServer")
 	public WebinterfaceResponse createServer(WebinterfaceRequestEvent event) {
 		JSONObject v = event.getRequestData().getJSONObject("value");
@@ -57,6 +79,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		String jVersion = v.getString("javaVersion");
 		if(id.isBlank() || name.isBlank()) return WebinterfaceResponse.error("Both id and name must be set");
 		if(!ID_PATTERN.matcher(id).matches()) return WebinterfaceResponse.error("ID must match " + ID_PATTERN.pattern());
+		if(ServerManager.getServer(id) != null || id.equals("base")) return WebinterfaceResponse.error("Server already exists");
 		JavaVersion javaVersion = JavaVersion.getJavaVersion(jVersion);
 		if(javaVersion == null) return WebinterfaceResponse.error("Invalid Java version");
 		SetupHelper.createNewServer(false, id, name, version, javaVersion);
@@ -171,6 +194,25 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		return WebinterfaceResponse.success();
 	}
 	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateServerMemory")
+	public WebinterfaceResponse updateServerMemory(WebinterfaceRequestEvent event) {
+		JSONObject v = event.getRequestData().getJSONObject("value");
+		String server = v.getString("server");
+		String memory = v.getString("memory");
+		int memoryMB;
+		try {
+			memoryMB = Integer.parseInt(memory);
+		}catch(NumberFormatException e) {
+			return WebinterfaceResponse.error("Invalid number");
+		}
+		MinecraftServer s = ServerManager.getServer(server);
+		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		s.getMetadata().setMemoryLimitMB(memoryMB);
+		s.saveMetadata();
+		
+		return WebinterfaceResponse.success();
+	}
+	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "deleteServer")
 	public WebinterfaceResponse deleteServer(WebinterfaceRequestEvent event) {
 		String server = event.getRequestData().getString("value");
@@ -182,6 +224,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		CommentedFileConfig c = VelocityBase.loadVelocityConfig();
 		c.remove("servers." + server);
 		c.save();
+		c.close();
 		return WebinterfaceResponse.success();
 	}
 	
@@ -207,6 +250,110 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(v == null || id.equals(JavaVersion.SYSTEM.getID())) return WebinterfaceResponse.error("Invalid Java version");
 		JavaVersion.removeJavaVersion(v);
 		ServerManager.saveJavaVersions();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addHostname")
+	public WebinterfaceResponse addHostname(WebinterfaceRequestEvent event) {
+		String hostname = event.getRequestData().getString("value");
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname already exists");
+		config.set(Arrays.asList("forced-hosts", hostname), new ArrayList<>());
+		config.save();
+		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "removeHostname")
+	public WebinterfaceResponse removeHostname(WebinterfaceRequestEvent event) {
+		String hostname = event.getRequestData().getString("value");
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(!config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname doesn't exist");
+		config.remove(Arrays.asList("forced-hosts", hostname));
+		config.save();
+		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addServerToHostname")
+	public WebinterfaceResponse addServerToHostname(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String hostname = value.getString("hostname");
+		String server = value.getString("server");
+		
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(!config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname doesn't exist");
+		
+		if(ServerManager.getServer(server) == null) return WebinterfaceResponse.error("Invalid server");
+		
+		List<String> servers = config.get(Arrays.asList("forced-hosts", hostname));
+		if(servers.contains(server)) return WebinterfaceResponse.error("Server already added");
+		
+		servers.add(server);
+		config.set(Arrays.asList("forced-hosts", hostname), servers);
+		config.save();
+		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "removeServerFromHostname")
+	public WebinterfaceResponse removeServerFromHostname(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String hostname = value.getString("hostname");
+		String server = value.getString("server");
+		
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(!config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname doesn't exist");
+		
+		List<String> servers = config.get(Arrays.asList("forced-hosts", hostname));
+		if(!servers.contains(server)) return WebinterfaceResponse.error("Server already removed");
+		
+		servers.remove(server);
+		config.set(Arrays.asList("forced-hosts", hostname), servers);
+		config.save();
+		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "moveHostnameServerUp")
+	public WebinterfaceResponse moveHostnameServerUp(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String hostname = value.getString("hostname");
+		String server = value.getString("server");
+		
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(!config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname doesn't exist");
+		
+		List<String> servers = config.get(Arrays.asList("forced-hosts", hostname));
+		if(!servers.contains(server)) return WebinterfaceResponse.error("Server not added");
+		
+		int idx = servers.indexOf(server);
+		if(idx == 0) return WebinterfaceResponse.error("Server is already at the top");
+		Collections.swap(servers, idx, idx - 1);
+		config.set(Arrays.asList("forced-hosts", hostname), servers);
+		config.save();
+		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "moveHostnameServerDown")
+	public WebinterfaceResponse moveHostnameServerDown(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String hostname = value.getString("hostname");
+		String server = value.getString("server");
+		
+		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
+		if(!config.contains(Arrays.asList("forced-hosts", hostname))) return WebinterfaceResponse.error("Hostname doesn't exist");
+		
+		List<String> servers = config.get(Arrays.asList("forced-hosts", hostname));
+		if(!servers.contains(server)) return WebinterfaceResponse.error("Server not added");
+		
+		int idx = servers.indexOf(server);
+		if(idx == servers.size() - 1) return WebinterfaceResponse.error("Server is already at the top");
+		Collections.swap(servers, idx, idx + 1);
+		config.set(Arrays.asList("forced-hosts", hostname), servers);
+		config.save();
+		config.close();
 		return WebinterfaceResponse.success();
 	}
 

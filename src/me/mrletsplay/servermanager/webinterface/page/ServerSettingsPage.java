@@ -10,8 +10,11 @@ import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.webinterfaceapi.http.request.HttpRequestContext;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.HideLoadingScreenAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ElementValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ObjectValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.StringValue;
@@ -52,7 +55,7 @@ public class ServerSettingsPage extends WebinterfacePage {
 			ObjectValue v = new ObjectValue();
 			v.put("server", new StringValue(serverID));
 			v.put("version", new ElementValue(ver));
-			upd.setOnClickAction(new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()));
+			upd.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
 			els.add(upd);
 			
 			WebinterfaceInputField mem = new WebinterfaceInputField(String.valueOf(server.getMetadata().getMemoryLimitMB()));
@@ -79,7 +82,7 @@ public class ServerSettingsPage extends WebinterfacePage {
 			ObjectValue v3 = new ObjectValue();
 			v3.put("server", new StringValue(serverID));
 			v3.put("javaVersion", new ElementValue(ver));
-			updJ.setOnClickAction(new SendJSAction("server-manager", "updateJavaVersion", v3).onSuccess(new ReloadPageAction()));
+			updJ.setOnClickAction(new SendJSAction("server-manager", "updateServerJavaVersion", v3).onSuccess(new ReloadPageAction()));
 			els.add(updJ);
 			
 			return els;

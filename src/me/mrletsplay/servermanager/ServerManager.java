@@ -29,6 +29,7 @@ import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SetupVelocityPage;
+import me.mrletsplay.servermanager.webinterface.page.ShutdownPage;
 import me.mrletsplay.servermanager.webinterface.page.VelocitySettingsPage;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.config.DefaultSettings;
@@ -50,6 +51,9 @@ public class ServerManager {
 		generalCategory.addPage(new JavaVersionsPage());
 		generalCategory.addPage(new HostnamesPage());
 		generalCategory.addPage(new SettingsPage());
+		generalCategory.addPage(new ShutdownPage());
+		
+		// Invisible pages
 		generalCategory.addPage(new CreateServerPage());
 		generalCategory.addPage(new SetupVelocityPage());
 		generalCategory.addPage(new ConsolePage());

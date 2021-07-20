@@ -58,7 +58,7 @@ public class ServerSettingsPage extends WebinterfacePage {
 			upd.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
 			els.add(upd);
 			
-			WebinterfaceInputField mem = new WebinterfaceInputField(String.valueOf(server.getMetadata().getMemoryLimitMB()));
+			WebinterfaceInputField mem = new WebinterfaceInputField(String.valueOf(server.getMetadata().getMemoryLimitMiB()));
 			mem.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
 			els.add(mem);
 			

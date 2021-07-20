@@ -101,12 +101,12 @@ public class JavaProcess {
 		if(onStopped != null) onStopped.run();
 	}
 	
-	public static JavaProcess startProcess(JavaVersion javaVersion, File jarFile, File workingDir, int memoryLimitMB, List<String> javaOptions, String... arguments) {
+	public static JavaProcess startProcess(JavaVersion javaVersion, File jarFile, File workingDir, int memoryLimitMiB, List<String> javaOptions, String... arguments) {
 		List<String> command = new ArrayList<>();
 		command.add(javaVersion.getJavaPath());
 		
 		if(javaOptions != null) command.addAll(javaOptions);
-		command.add("-Xmx" + memoryLimitMB + "M");
+		command.add("-Xmx" + memoryLimitMiB + "M");
 		command.add("-jar");
 		command.add(jarFile.getAbsolutePath());
 		command.addAll(Arrays.asList(arguments));

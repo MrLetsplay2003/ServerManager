@@ -70,6 +70,15 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		return WebinterfaceResponse.success();
 	}
 	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "shutdownEverything")
+	public WebinterfaceResponse shutdownEverything(WebinterfaceRequestEvent event) {
+		if(VelocityBase.isRunning()) VelocityBase.stop();
+		for(MinecraftServer server : ServerManager.getServers()) {
+			if(server.isRunning()) server.stop();
+		}
+		return WebinterfaceResponse.success();
+	}
+	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "createServer")
 	public WebinterfaceResponse createServer(WebinterfaceRequestEvent event) {
 		JSONObject v = event.getRequestData().getJSONObject("value");

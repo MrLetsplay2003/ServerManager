@@ -20,7 +20,7 @@ public class ServerMetadata implements JSONConvertible {
 	private String javaVersion = JavaVersion.SYSTEM.getID();
 	
 	@JSONValue
-	private int memoryLimitMB = 1024;
+	private int memoryLimitMiB = 1024;
 	
 	@JSONValue
 	private boolean autostart = false;
@@ -64,11 +64,11 @@ public class ServerMetadata implements JSONConvertible {
 	}
 	
 	public void setMemoryLimitMB(int memoryLimitMB) {
-		this.memoryLimitMB = memoryLimitMB;
+		this.memoryLimitMiB = memoryLimitMB;
 	}
 
-	public int getMemoryLimitMB() {
-		return memoryLimitMB;
+	public int getMemoryLimitMiB() {
+		return memoryLimitMiB;
 	}
 	
 	public void setAutostart(boolean autostart) {

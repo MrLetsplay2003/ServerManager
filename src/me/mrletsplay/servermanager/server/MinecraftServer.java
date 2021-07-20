@@ -149,7 +149,7 @@ public class MinecraftServer {
 		if(isRunning()) return;
 		JavaVersion j = getJavaVersion();
 		if(j == null) return;
-		process = JavaProcess.startProcess(j, FileHelper.getServerJarFile(serverFolder), serverFolder, metadata.getMemoryLimitMB(), AIKARS_FLAGS, "nogui");
+		process = JavaProcess.startProcess(j, FileHelper.getServerJarFile(serverFolder), serverFolder, metadata.getMemoryLimitMiB(), AIKARS_FLAGS, "nogui");
 		process.setOnStopped(() -> {
 			process = null;
 		});

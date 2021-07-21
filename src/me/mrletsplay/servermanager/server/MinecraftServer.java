@@ -20,6 +20,7 @@ import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
+import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 
 public class MinecraftServer {
@@ -68,8 +69,12 @@ public class MinecraftServer {
 		return metadata.getName();
 	}
 	
-	public String getVersion() {
+	public String getRawVersion() {
 		return metadata.getVersion();
+	}
+	
+	public PaperVersion getVersion() {
+		return PaperVersion.getByVersion(getRawVersion());
 	}
 	
 	public void saveMetadata() {
@@ -125,11 +130,13 @@ public class MinecraftServer {
 	
 	@SuppressWarnings("unchecked")
 	public void updateForwardingMode(VelocityForwardingMode mode) {
-		Map<String, Object> paper = loadPaperConfig();
-		Map<String, Object> paperSettings = (Map<String, Object>) paper.get("settings");
-		Map<String, Object> velocitySupport = (Map<String, Object>) paperSettings.get("velocity-support");
-		velocitySupport.put("enabled", mode == VelocityForwardingMode.MODERN);
-		savePaperConfig(paper);
+		if(getVersion().supportsModernForwarding()) {
+			Map<String, Object> paper = loadPaperConfig();
+			Map<String, Object> paperSettings = (Map<String, Object>) paper.get("settings");
+			Map<String, Object> velocitySupport = (Map<String, Object>) paperSettings.get("velocity-support");
+			velocitySupport.put("enabled", mode == VelocityForwardingMode.MODERN);
+			savePaperConfig(paper);
+		}
 		
 		Map<String, Object> spigot = loadSpigotConfig();
 		Map<String, Object> spigotSettings = (Map<String, Object>) spigot.get("settings");

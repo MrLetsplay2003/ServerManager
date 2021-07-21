@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,17 +97,20 @@ public class ServerManager {
 			File metaFile = FileHelper.getMetadataFile(s);
 			if(!metaFile.exists()) continue;
 			ServerMetadata d = MetadataHelper.loadMetadata(metaFile);
+			if(!d.isValid()) continue;
 			servers.add(new MinecraftServer(s, d));
 		}
-	}
-	
-	public void refreshServers() {
-		servers.clear();
-		loadServers();
+		
+		servers.sort(Comparator.comparing(m -> m.getID()));
 	}
 	
 	public static void addServer(MinecraftServer server) {
 		servers.add(server);
+		servers.sort(Comparator.comparing(m -> m.getID()));
+	}
+	
+	public static void removeServer(MinecraftServer server) {
+		servers.remove(server);
 	}
 	
 	public static MinecraftServer getServer(String serverID) {

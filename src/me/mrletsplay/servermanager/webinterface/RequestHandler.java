@@ -21,6 +21,7 @@ import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.SetupHelper;
 import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfaceSettingsPage;
@@ -63,6 +64,11 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		}catch(IllegalArgumentException e) {
 			return WebinterfaceResponse.error("Invalid forwarding mode");
 		}
+		
+		if(m == VelocityForwardingMode.MODERN && ServerManager.getServers().stream().anyMatch(s -> !s.getVersion().supportsModernForwarding())) {
+			return WebinterfaceResponse.error("Can't enable modern forwarding: Server(s) too old");
+		}
+		
 		VelocityBase.setForwardingMode(m);
 		for(MinecraftServer server : ServerManager.getServers()) {
 			server.updateForwardingMode(m);
@@ -88,10 +94,16 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		String jVersion = v.getString("javaVersion");
 		if(id.isBlank() || name.isBlank()) return WebinterfaceResponse.error("Both id and name must be set");
 		if(!ID_PATTERN.matcher(id).matches()) return WebinterfaceResponse.error("ID must match " + ID_PATTERN.pattern());
+		PaperVersion papV;
+		try {
+			papV = PaperVersion.valueOf(version);
+		}catch(IllegalArgumentException e) {
+			return WebinterfaceResponse.error("Invalid version");
+		}
 		if(ServerManager.getServer(id) != null || id.equals("base")) return WebinterfaceResponse.error("Server already exists");
 		JavaVersion javaVersion = JavaVersion.getJavaVersion(jVersion);
 		if(javaVersion == null) return WebinterfaceResponse.error("Invalid Java version");
-		SetupHelper.createNewServer(false, id, name, version, javaVersion);
+		SetupHelper.createNewServer(false, id, name, papV, javaVersion);
 		return WebinterfaceResponse.success();
 	}
 	
@@ -168,6 +180,14 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		JSONObject v = event.getRequestData().getJSONObject("value");
 		String server = v.getString("server");
 		String version = v.getString("version");
+		
+		PaperVersion papV;
+		try {
+			papV = PaperVersion.valueOf(version);
+		}catch(IllegalArgumentException e) {
+			return WebinterfaceResponse.error("Invalid version");
+		}
+		
 		MinecraftServer s = ServerManager.getServer(server);
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		
@@ -175,14 +195,14 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(running) s.stop();
 		
 		File paperJar = new File(s.getServerFolder(), "paper.jar");
-		String latestPaperURL = PaperAPI.getLatestBuildURL(version);
+		String latestPaperURL = PaperAPI.getLatestBuildURL(papV.getVersion());
 		try {
 			new HttpGet(latestPaperURL).execute().transferTo(paperJar);
 		} catch (IOException e) {
 			throw new FriendlyException("Failed to download Paper", e);
 		}
 		
-		s.getMetadata().setVersion(version);
+		s.getMetadata().setVersion(papV.getVersion());
 		s.saveMetadata();
 		
 		if(running) s.start();
@@ -195,6 +215,8 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		JSONObject v = event.getRequestData().getJSONObject("value");
 		String server = v.getString("server");
 		String version = v.getString("javaVersion");
+		JavaVersion jV = JavaVersion.getJavaVersion(version);
+		if(jV == null) return WebinterfaceResponse.error("Invalid Java version");
 		MinecraftServer s = ServerManager.getServer(server);
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		s.getMetadata().setJavaVersion(version);
@@ -214,6 +236,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		}catch(NumberFormatException e) {
 			return WebinterfaceResponse.error("Invalid number");
 		}
+		if(memoryMB <= 0) return WebinterfaceResponse.error("Invalid amount of memory");
 		MinecraftServer s = ServerManager.getServer(server);
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		s.getMetadata().setMemoryLimitMB(memoryMB);
@@ -229,7 +252,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		if(s.isRunning()) s.stop();
 		IOUtils.deleteFile(s.getServerFolder());
-		ServerManager.getServers().remove(s);
+		ServerManager.removeServer(s);
 		CommentedFileConfig c = VelocityBase.loadVelocityConfig();
 		c.remove("servers." + server);
 		c.save();

@@ -99,43 +99,52 @@ public class OverviewPage extends WebinterfacePage {
 				WebinterfaceElementGroup infoGroup = new WebinterfaceElementGroup();
 				infoGroup.addLayoutOptions(new GridLayout("min-content", "auto"));
 				
-				WebinterfaceTitleText onOffT = new WebinterfaceTitleText("Running");
-				onOffT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(onOffT);
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Running")
+						.leftbound()
+						.create());
 				
-				WebinterfaceText onOff = new WebinterfaceText(server.isRunning() ? "Yes" : "No");
-				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(onOff);
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(server.isRunning() ? "Yes" : "No")
+						.leftbound()
+						.create());
 				
-				WebinterfaceTitleText verT = new WebinterfaceTitleText("Version");
-				verT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(verT);
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Version")
+						.leftbound()
+						.create());
 				
-				WebinterfaceText ver = new WebinterfaceText(server.getVersion());
-				ver.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(ver);
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(server.getVersion().getVersion())
+						.leftbound()
+						.create());
 				
-				WebinterfaceTitleText memT = new WebinterfaceTitleText("Memory Limit");
-				memT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				memT.getStyle().setProperty("white-space", "nowrap");
-				infoGroup.addElement(memT);
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Memory Limit")
+						.leftbound()
+						.noLineBreaks()
+						.create());
 				
-				WebinterfaceText mem = new WebinterfaceText(server.getMetadata().getMemoryLimitMiB() + " MiB");
-				mem.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(mem);
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(server.getMetadata().getMemoryLimitMiB() + " MiB")
+						.leftbound()
+						.create());
 				
-				WebinterfaceTitleText portT = new WebinterfaceTitleText("Port");
-				portT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(portT);
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Port")
+						.leftbound()
+						.create());
 				
-				WebinterfaceText port = new WebinterfaceText(String.valueOf(server.getPort()));
-				port.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(port);
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(String.valueOf(server.getPort()))
+						.leftbound()
+						.create());
 
-				WebinterfaceTitleText jVerT = new WebinterfaceTitleText("Java Version");
-				jVerT.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				jVerT.getStyle().setProperty("white-space", "nowrap");
-				infoGroup.addElement(jVerT);
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Java Version")
+						.leftbound()
+						.noLineBreaks()
+						.create());
 				
 				JavaVersion j = server.getJavaVersion();
 				infoGroup.addElement(WebinterfaceText.builder()

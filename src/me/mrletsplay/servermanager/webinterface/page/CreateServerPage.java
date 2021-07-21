@@ -1,11 +1,12 @@
 package me.mrletsplay.servermanager.webinterface.page;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import me.mrletsplay.servermanager.process.JavaVersion;
-import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.server.VelocityBase;
+import me.mrletsplay.servermanager.util.PaperVersion;
+import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.HideLoadingScreenAction;
@@ -39,12 +40,13 @@ public class CreateServerPage extends WebinterfacePage {
 			WebinterfaceInputField name = new WebinterfaceInputField("Name");
 			els.add(name);
 			
+			boolean modernOnly = VelocityBase.getForwardingMode() == VelocityForwardingMode.MODERN;
 			WebinterfaceSelect version = new WebinterfaceSelect();
-			List<String> versions = new ArrayList<>(PaperAPI.getPaperVersions());
-			Collections.reverse(versions);
-			for(String v : versions) {
-				version.addOption("Paper " + v, v);
+			for(PaperVersion v : PaperVersion.getVersions()) {
+				if(modernOnly && !v.supportsModernForwarding()) continue;
+				version.addOption("Paper " + v.getVersion(), v.name());
 			}
+			if(modernOnly) version.addOption("Enable legacy forwarding for more options", null, false, false);
 			els.add(version);
 			
 			WebinterfaceSelect javaVersion = new WebinterfaceSelect();

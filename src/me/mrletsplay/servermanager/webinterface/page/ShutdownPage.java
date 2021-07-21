@@ -8,15 +8,19 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.action.RedirectAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.DefaultLayoutOption;
 
 public class ShutdownPage extends WebinterfacePage {
 	
 	public ShutdownPage() {
 		super("Shutdown", "/sm/shutdown");
+		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();
+		s.addTitle("Shutdown");
 		
 		WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown everything");
+		shutdown.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 		shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "shutdownEverything", null).onSuccess(new RedirectAction("/")).onError(new HideLoadingScreenAction())));
 		s.addElement(shutdown);
 		

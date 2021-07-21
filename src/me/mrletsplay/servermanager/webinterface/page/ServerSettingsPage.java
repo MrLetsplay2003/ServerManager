@@ -6,7 +6,9 @@ import java.util.List;
 import me.mrletsplay.servermanager.ServerManager;
 import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
-import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.server.VelocityBase;
+import me.mrletsplay.servermanager.util.PaperVersion;
+import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.http.request.HttpRequestContext;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
@@ -22,6 +24,8 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButto
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceInputField;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfacePageElement;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceSelect;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceTitleText;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceVerticalSpacer;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.DefaultLayoutOption;
 
 public class ServerSettingsPage extends WebinterfacePage {
@@ -41,22 +45,6 @@ public class ServerSettingsPage extends WebinterfacePage {
 			
 			MinecraftServer server = ServerManager.getServer(serverID);
 			if(server == null) return els;
-			
-			String serverVersion = server.getVersion();
-			
-			WebinterfaceSelect ver = new WebinterfaceSelect();
-			ver.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
-			for(String v : PaperAPI.getPaperVersions()) {
-				ver.addOption("Paper " + v, v, v.equals(serverVersion));
-			}
-			els.add(ver);
-			
-			WebinterfaceButton upd = new WebinterfaceButton("Update Paper Version");
-			ObjectValue v = new ObjectValue();
-			v.put("server", new StringValue(serverID));
-			v.put("version", new ElementValue(ver));
-			upd.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
-			els.add(upd);
 			
 			WebinterfaceInputField mem = new WebinterfaceInputField(String.valueOf(server.getMetadata().getMemoryLimitMiB()));
 			mem.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
@@ -81,9 +69,36 @@ public class ServerSettingsPage extends WebinterfacePage {
 			WebinterfaceButton updJ = new WebinterfaceButton("Update Java Version");
 			ObjectValue v3 = new ObjectValue();
 			v3.put("server", new StringValue(serverID));
-			v3.put("javaVersion", new ElementValue(ver));
+			v3.put("javaVersion", new ElementValue(jVer));
 			updJ.setOnClickAction(new SendJSAction("server-manager", "updateServerJavaVersion", v3).onSuccess(new ReloadPageAction()));
 			els.add(updJ);
+			
+			els.add(new WebinterfaceVerticalSpacer("30px"));
+			
+			els.add(WebinterfaceTitleText.builder()
+					.text("Danger Zone")
+					.fullWidth()
+					.leftbound()
+					.create());
+			
+			PaperVersion serverVersion = server.getVersion();
+
+			boolean modernOnly = VelocityBase.getForwardingMode() == VelocityForwardingMode.MODERN;
+			WebinterfaceSelect ver = new WebinterfaceSelect();
+			ver.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
+			for(PaperVersion v : PaperVersion.getVersions()) {
+				if(modernOnly && !v.supportsModernForwarding()) continue;
+				ver.addOption("Paper " + v.getVersion(), v.name(), v == serverVersion);
+			}
+			if(modernOnly) ver.addOption("Enable legacy forwarding for more options", null, false, false);
+			els.add(ver);
+			
+			WebinterfaceButton upd = new WebinterfaceButton("Update Paper Version");
+			ObjectValue v = new ObjectValue();
+			v.put("server", new StringValue(serverID));
+			v.put("version", new ElementValue(ver));
+			upd.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
+			els.add(upd);
 			
 			return els;
 		});

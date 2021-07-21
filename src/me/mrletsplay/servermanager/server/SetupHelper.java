@@ -21,6 +21,7 @@ import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.util.PaperAPI;
+import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
@@ -71,7 +72,7 @@ public class SetupHelper {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, String version, JavaVersion javaVersion) {
+	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, PaperVersion version, JavaVersion javaVersion) {
 		List<Integer> ports = ServerManager.getServers().stream()
 				.map(s -> s.getPort())
 				.collect(Collectors.toList());
@@ -95,7 +96,7 @@ public class SetupHelper {
 		IOUtils.writeBytes(FileHelper.getEULAFile(serverFolder), "eula=true".getBytes(StandardCharsets.UTF_8));
 		
 		File paperJar = FileHelper.getServerJarFile(serverFolder);
-		String latestPaperURL = PaperAPI.getLatestBuildURL(version);
+		String latestPaperURL = PaperAPI.getLatestBuildURL(version.getVersion());
 		try {
 			new HttpGet(latestPaperURL).execute().transferTo(paperJar);
 		} catch (IOException e) {
@@ -119,7 +120,7 @@ public class SetupHelper {
 		velocityConfig.save();
 		velocityConfig.close();
 		
-		ServerMetadata m = new ServerMetadata(id, name, version, javaVersion);
+		ServerMetadata m = new ServerMetadata(id, name, version.getVersion(), javaVersion);
 		MinecraftServer server = new MinecraftServer(serverFolder, m);
 		server.loadServerProperties()
 			.set("server-port", String.valueOf(port))
@@ -129,14 +130,16 @@ public class SetupHelper {
 		
 		MetadataHelper.saveMetadata(new File(serverFolder, "server-manager.json"), m);
 		
-		Map<String, Object> paper = server.loadPaperConfig();
-		Map<String, Object> settings = (Map<String, Object>) paper.get("settings");
-		Map<String, Object> velocitySupport = (Map<String, Object>) settings.get("velocity-support");
-		// TODO: doesn't work for MC < 1.12/1.13
-		velocitySupport.put("enabled", VelocityBase.getForwardingMode() == VelocityForwardingMode.MODERN); // Only enable if using modern forwarding
-		velocitySupport.put("secret", forwardingSecret);
-		velocitySupport.put("online-mode", true);
-		server.savePaperConfig(paper);
+		if(version.supportsModernForwarding()) {
+			Map<String, Object> paper = server.loadPaperConfig();
+			Map<String, Object> settings = (Map<String, Object>) paper.get("settings");
+			Map<String, Object> velocitySupport = (Map<String, Object>) settings.get("velocity-support");
+			
+			velocitySupport.put("enabled", VelocityBase.getForwardingMode() == VelocityForwardingMode.MODERN); // Only enable if using modern forwarding
+			velocitySupport.put("secret", forwardingSecret);
+			velocitySupport.put("online-mode", true);
+			server.savePaperConfig(paper);
+		}
 		
 		ServerManager.addServer(server);
 		return server;

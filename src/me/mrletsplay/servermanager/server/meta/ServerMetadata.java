@@ -4,6 +4,7 @@ import me.mrletsplay.mrcore.json.converter.JSONConstructor;
 import me.mrletsplay.mrcore.json.converter.JSONConvertible;
 import me.mrletsplay.mrcore.json.converter.JSONValue;
 import me.mrletsplay.servermanager.process.JavaVersion;
+import me.mrletsplay.servermanager.util.PaperVersion;
 
 public class ServerMetadata implements JSONConvertible {
 	
@@ -77,6 +78,15 @@ public class ServerMetadata implements JSONConvertible {
 	
 	public boolean isAutostart() {
 		return autostart;
+	}
+	
+	public boolean isValid() {
+		return id != null
+				&& name != null
+				&& version != null
+				&& javaVersion != null
+				&& memoryLimitMiB > 0
+				&& PaperVersion.getByVersion(getVersion()) != null;
 	}
 	
 }

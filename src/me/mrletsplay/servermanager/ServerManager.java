@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import me.mrletsplay.mrcore.io.IOUtils;
@@ -19,6 +23,7 @@ import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
+import me.mrletsplay.servermanager.util.ScheduledRestart;
 import me.mrletsplay.servermanager.webinterface.RequestHandler;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.servermanager.webinterface.page.AddJavaVersionPage;
@@ -27,6 +32,7 @@ import me.mrletsplay.servermanager.webinterface.page.CreateServerPage;
 import me.mrletsplay.servermanager.webinterface.page.HostnamesPage;
 import me.mrletsplay.servermanager.webinterface.page.JavaVersionsPage;
 import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
+import me.mrletsplay.servermanager.webinterface.page.RestartsPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SettingsPage;
 import me.mrletsplay.servermanager.webinterface.page.SetupVelocityPage;
@@ -39,6 +45,7 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageCategory;
 public class ServerManager {
 	
 	private static List<MinecraftServer> servers = new ArrayList<>();
+	private static ScheduledExecutorService executorService;
 	
 	public static void main(String[] args) {
 		DefaultSettings.HOME_PAGE_PATH.setDefaultValue("/sm/overview");
@@ -51,6 +58,7 @@ public class ServerManager {
 		generalCategory.addPage(new OverviewPage());
 		generalCategory.addPage(new JavaVersionsPage());
 		generalCategory.addPage(new HostnamesPage());
+		generalCategory.addPage(new RestartsPage());
 		generalCategory.addPage(new SettingsPage());
 		generalCategory.addPage(new ShutdownPage());
 		
@@ -62,8 +70,25 @@ public class ServerManager {
 		generalCategory.addPage(new VelocitySettingsPage());
 		generalCategory.addPage(new AddJavaVersionPage());
 		
+		executorService = Executors.newScheduledThreadPool(3);
+		
 		loadJavaVersions();
 		loadServers();
+		loadRestarts();
+		
+		executorService.scheduleAtFixedRate(() -> {
+			try {
+				for(ScheduledRestart r : ScheduledRestart.getRestarts()) {
+					if(ZonedDateTime.now().isAfter(r.getNextExecution())) {
+						Webinterface.getLogger().info("Running scheduled restart for: " + r.getServers().stream().collect(Collectors.joining(", ")));
+						r.run();
+						Webinterface.getLogger().info("Scheduled restart finished");
+					}
+				}
+			}catch(Exception e) {
+				Webinterface.getLogger().error("Failed to run scheduled restarts", e);
+			}
+		}, 1, 1, TimeUnit.MINUTES);
 		
 		for(MinecraftServer server : servers) {
 			if(server.getMetadata().isAutostart()) server.start();
@@ -86,6 +111,24 @@ public class ServerManager {
 		IOUtils.writeBytes(new File(Webinterface.getConfigurationDirectory(), "java-versions.json"), JavaVersion.getJavaVersions().stream()
 				.filter(v -> !v.isSystemDefault())
 				.map(v -> v.toJSON(false))
+				.collect(Collectors.toCollection(JSONArray::new)).toFancyString().getBytes(StandardCharsets.UTF_8));
+	}
+	
+	private static void loadRestarts() {
+		try {
+			File f = new File(Webinterface.getConfigurationDirectory(), "restarts.json");
+			if(!f.exists()) return;
+			new JSONArray(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8)).stream()
+				.map(o -> ScheduledRestart.fromJSON((JSONObject) o))
+				.forEach(ScheduledRestart::addRestart);
+		} catch (IOException e) {
+			throw new FriendlyException("Failed to load scheduled restarts", e);
+		}
+	}
+	
+	public static void saveRestarts() {
+		IOUtils.writeBytes(new File(Webinterface.getConfigurationDirectory(), "restarts.json"), ScheduledRestart.getRestarts().stream()
+				.map(v -> v.toJSON())
 				.collect(Collectors.toCollection(JSONArray::new)).toFancyString().getBytes(StandardCharsets.UTF_8));
 	}
 	

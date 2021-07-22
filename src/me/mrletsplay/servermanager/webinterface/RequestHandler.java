@@ -22,6 +22,7 @@ import me.mrletsplay.servermanager.server.SetupHelper;
 import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.servermanager.util.PaperVersion;
+import me.mrletsplay.servermanager.util.ScheduledRestart;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfaceSettingsPage;
@@ -386,6 +387,99 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		config.set(Arrays.asList("forced-hosts", hostname), servers);
 		config.save();
 		config.close();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addRestart")
+	public WebinterfaceResponse addRestart(WebinterfaceRequestEvent event) {
+		String cronString = event.getRequestData().getString("value");
+		String normalizedCronString;
+		try {
+			normalizedCronString  = ScheduledRestart.CRON_PARSER.parse(cronString).validate().asString();
+		}catch(IllegalArgumentException e) {
+			return WebinterfaceResponse.error("Invalid cron format");
+		}
+		if(ScheduledRestart.getRestart(normalizedCronString) != null) return WebinterfaceResponse.error("Restart already exists");
+		ScheduledRestart.addRestart(ScheduledRestart.fromCronString(normalizedCronString));
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "removeRestart")
+	public WebinterfaceResponse removeRestart(WebinterfaceRequestEvent event) {
+		String cronString = event.getRequestData().getString("value");
+		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
+		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
+		ScheduledRestart.removeRestart(r);
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addServerToRestart")
+	public WebinterfaceResponse addServerToRestart(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String cronString = value.getString("restart");
+		String server = value.getString("server");
+
+		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
+		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
+		
+		if(r.getServers().contains(server)) return WebinterfaceResponse.error("Server already added");
+		
+		if(ServerManager.getServer(server) == null) return WebinterfaceResponse.error("Invalid server");
+		
+		r.getServers().add(server);
+		ServerManager.saveRestarts();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "removeServerFromRestart")
+	public WebinterfaceResponse removeServerFromRestart(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String cronString = value.getString("restart");
+		String server = value.getString("server");
+		
+		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
+		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
+		
+		if(!r.getServers().contains(server)) return WebinterfaceResponse.error("Server already removed");
+		
+		r.getServers().remove(server);
+		ServerManager.saveRestarts();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "moveRestartServerUp")
+	public WebinterfaceResponse moveRestartServerUp(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String cronString = value.getString("restart");
+		String server = value.getString("server");
+
+		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
+		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
+		
+		if(!r.getServers().contains(server)) return WebinterfaceResponse.error("Server not added");
+		
+		int idx = r.getServers().indexOf(server);
+		if(idx == 0) return WebinterfaceResponse.error("Server is already at the top");
+		Collections.swap(r.getServers(), idx, idx - 1);
+		ServerManager.saveRestarts();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "moveRestartServerDown")
+	public WebinterfaceResponse moveRestartServerDown(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String cronString = value.getString("restart");
+		String server = value.getString("server");
+
+		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
+		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
+		
+		if(!r.getServers().contains(server)) return WebinterfaceResponse.error("Server not added");
+		
+		int idx = r.getServers().indexOf(server);
+		if(idx == r.getServers().size() - 1) return WebinterfaceResponse.error("Server is already at the top");
+		Collections.swap(r.getServers(), idx, idx + 1);
+		ServerManager.saveRestarts();
 		return WebinterfaceResponse.success();
 	}
 

@@ -91,5 +91,10 @@
 			<version>1.28</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.cronutils</groupId>
+			<artifactId>cron-utils</artifactId>
+			<version>9.1.5</version>
+		</dependency>
 	</dependencies>
 </project>

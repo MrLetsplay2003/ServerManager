@@ -105,4 +105,8 @@ public class ScheduledRestart {
 		SCHEDULED_RESTARTS.remove(restart);
 	}
 	
+	public static void clearRestarts() {
+		SCHEDULED_RESTARTS.clear();
+	}
+	
 }

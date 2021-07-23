@@ -19,6 +19,11 @@ public class ShutdownPage extends WebinterfacePage {
 		WebinterfacePageSection s = new WebinterfacePageSection();
 		s.addTitle("Shutdown");
 		
+		WebinterfaceButton reload = new WebinterfaceButton("Reload everything");
+		reload.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
+		reload.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "reloadEverything", null).onSuccess(new RedirectAction("/")).onError(new HideLoadingScreenAction())));
+		s.addElement(reload);
+		
 		WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown everything");
 		shutdown.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 		shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "shutdownEverything", null).onSuccess(new RedirectAction("/")).onError(new HideLoadingScreenAction())));

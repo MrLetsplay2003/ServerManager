@@ -20,6 +20,7 @@ import me.mrletsplay.mrcore.json.converter.JSONConverter;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
+import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
@@ -72,9 +73,7 @@ public class ServerManager {
 		
 		executorService = Executors.newScheduledThreadPool(3);
 		
-		loadJavaVersions();
-		loadServers();
-		loadRestarts();
+		loadAndStart();
 		
 		executorService.scheduleAtFixedRate(() -> {
 			try {
@@ -89,6 +88,14 @@ public class ServerManager {
 				Webinterface.getLogger().error("Failed to run scheduled restarts", e);
 			}
 		}, 1, 1, TimeUnit.MINUTES);
+	}
+	
+	private static void loadAndStart() {
+		loadJavaVersions();
+		loadServers();
+		loadRestarts();
+		
+		if(VelocityBase.isAutostart()) VelocityBase.start();
 		
 		for(MinecraftServer server : servers) {
 			if(server.getMetadata().isAutostart()) server.start();
@@ -164,6 +171,19 @@ public class ServerManager {
 	
 	public static List<MinecraftServer> getServers() {
 		return servers;
+	}
+	
+	public static void fullReload() {
+		if(VelocityBase.isRunning()) VelocityBase.stop();
+		for(MinecraftServer s : servers) {
+			if(s.isRunning()) s.stop();
+		}
+
+		ScheduledRestart.clearRestarts();
+		servers.clear();
+		JavaVersion.clearJavaVersions();
+		
+		loadAndStart();
 	}
 
 }

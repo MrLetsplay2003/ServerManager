@@ -11,11 +11,16 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.CheckboxValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ElementValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceCheckBox;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceElementGroup;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfacePageElement;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceSelect;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceText;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.DefaultLayoutOption;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.GridLayout;
 
 public class VelocitySettingsPage extends WebinterfacePage {
 	
@@ -40,6 +45,21 @@ public class VelocitySettingsPage extends WebinterfacePage {
 			WebinterfaceButton forwConfirm = new WebinterfaceButton("Confirm");
 			forwConfirm.setOnClickAction(new SendJSAction("server-manager", "setVelocityForwardingMode", new ElementValue(forw)).onSuccess(new ReloadPageAction()));
 			els.add(forwConfirm);
+			
+			WebinterfaceElementGroup chbGrp = new WebinterfaceElementGroup();
+			chbGrp.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("50px", "auto"));
+			
+			WebinterfaceCheckBox autostart = new WebinterfaceCheckBox(VelocityBase.isAutostart());
+			autostart.setOnChangeAction(new SendJSAction("server-manager", "setVelocityAutostart", new CheckboxValue(autostart)).onError(new ReloadPageAction()));
+			chbGrp.addElement(autostart);
+			
+			chbGrp.addElement(WebinterfaceText.builder()
+					.text("Autostart")
+					.centeredVertically()
+					.leftbound()
+					.create());
+			
+			els.add(chbGrp);
 			
 			return els;
 		});

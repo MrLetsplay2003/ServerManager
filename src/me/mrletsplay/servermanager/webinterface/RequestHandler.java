@@ -77,6 +77,21 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		return WebinterfaceResponse.success();
 	}
 	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "setVelocityAutostart")
+	public WebinterfaceResponse setVelocityAutostart(WebinterfaceRequestEvent event) {
+		boolean autostart = event.getRequestData().getBoolean("value");
+		
+		VelocityBase.setAutostart(autostart);
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "reloadEverything")
+	public WebinterfaceResponse reloadEverything(WebinterfaceRequestEvent event) {
+		ServerManager.fullReload();
+		
+		return WebinterfaceResponse.success();
+	}
+	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "shutdownEverything")
 	public WebinterfaceResponse shutdownEverything(WebinterfaceRequestEvent event) {
 		if(VelocityBase.isRunning()) VelocityBase.stop();
@@ -246,6 +261,19 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		return WebinterfaceResponse.success();
 	}
 	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateServerAutostart")
+	public WebinterfaceResponse updateServerAutostart(WebinterfaceRequestEvent event) {
+		JSONObject v = event.getRequestData().getJSONObject("value");
+		String server = v.getString("server");
+		boolean autostart = v.getBoolean("autostart");
+		MinecraftServer s = ServerManager.getServer(server);
+		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		s.getMetadata().setAutostart(autostart);
+		s.saveMetadata();
+		
+		return WebinterfaceResponse.success();
+	}
+	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "deleteServer")
 	public WebinterfaceResponse deleteServer(WebinterfaceRequestEvent event) {
 		String server = event.getRequestData().getString("value");
@@ -401,6 +429,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		}
 		if(ScheduledRestart.getRestart(normalizedCronString) != null) return WebinterfaceResponse.error("Restart already exists");
 		ScheduledRestart.addRestart(ScheduledRestart.fromCronString(normalizedCronString));
+		ServerManager.saveRestarts();
 		return WebinterfaceResponse.success();
 	}
 	
@@ -410,6 +439,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		ScheduledRestart r = ScheduledRestart.getRestart(cronString);
 		if(r == null) return WebinterfaceResponse.error("Restart doesn't exist");
 		ScheduledRestart.removeRestart(r);
+		ServerManager.saveRestarts();
 		return WebinterfaceResponse.success();
 	}
 	

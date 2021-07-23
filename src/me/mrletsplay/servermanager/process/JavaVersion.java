@@ -69,4 +69,8 @@ public class JavaVersion implements JSONConvertible {
 		return JAVA_VERSIONS;
 	}
 	
+	public static void clearJavaVersions() {
+		JAVA_VERSIONS.removeIf(v -> !v.isSystemDefault());
+	}
+	
 }

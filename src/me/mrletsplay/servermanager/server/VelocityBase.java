@@ -1,11 +1,16 @@
 package me.mrletsplay.servermanager.server;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 
+import me.mrletsplay.mrcore.io.IOUtils;
+import me.mrletsplay.mrcore.json.JSONObject;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
@@ -48,6 +53,30 @@ public class VelocityBase {
 		c.set("player-info-forwarding-mode", mode.getRaw());
 		c.save();
 		c.close();
+	}
+	
+	private static JSONObject loadVelocitySettings() {
+		try {
+			File f = new File(Webinterface.getConfigurationDirectory(), "velocity.json");
+			if(!f.exists()) return new JSONObject();
+			return new JSONObject(new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8));
+		} catch (IOException e) {
+			throw new FriendlyException("Failed to load Java versions", e);
+		}
+	}
+	
+	private static void saveVelocitySettings(JSONObject settings) {
+		IOUtils.writeBytes(new File(Webinterface.getConfigurationDirectory(), "velocity.json"), settings.toFancyString().getBytes(StandardCharsets.UTF_8));
+	}
+	
+	public static boolean isAutostart() {
+		return loadVelocitySettings().optBoolean("autostart").orElse(false);
+	}
+	
+	public static void setAutostart(boolean autostart) {
+		JSONObject s = loadVelocitySettings();
+		s.put("autostart", autostart);
+		saveVelocitySettings(s);
 	}
 	
 	public static boolean isInstalled() {

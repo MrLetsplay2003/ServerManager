@@ -27,6 +27,7 @@ public class JavaVersionsPage extends WebinterfacePage {
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();
 		s.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("min-content", "auto"));
+		s.addTitle("Java Versions");
 		
 		s.addDynamicElements(() -> {
 			List<WebinterfacePageElement> els = new ArrayList<>();

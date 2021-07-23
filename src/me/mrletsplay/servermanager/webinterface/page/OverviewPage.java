@@ -48,11 +48,36 @@ public class OverviewPage extends WebinterfacePage {
 				WebinterfaceElementGroup infoGroup = new WebinterfaceElementGroup();
 				infoGroup.addLayoutOptions(new GridLayout("min-content", "auto"));
 				
-				infoGroup.addElement(new WebinterfaceTitleText("Running"));
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Running")
+						.leftbound()
+						.create());
 				
-				WebinterfaceText onOff = new WebinterfaceText(VelocityBase.isRunning() ? "Yes" : "No");
-				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
-				infoGroup.addElement(onOff);
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(VelocityBase.isRunning() ? "Yes" : "No")
+						.leftbound()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Forwarding Mode")
+						.leftbound()
+						.noLineBreaks()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(VelocityBase.getForwardingMode().getFriendlyName())
+						.leftbound()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Autostart")
+						.leftbound()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(VelocityBase.isAutostart() ? "Enabled" : "Disabled")
+						.leftbound()
+						.create());
 				
 				els.add(infoGroup);
 				
@@ -151,6 +176,16 @@ public class OverviewPage extends WebinterfacePage {
 						.text(j == null ? "[MISSING]" : j.getName())
 						.leftbound()
 						.noLineBreaks()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceTitleText.builder()
+						.text("Autostart")
+						.leftbound()
+						.create());
+				
+				infoGroup.addElement(WebinterfaceText.builder()
+						.text(server.getMetadata().isAutostart() ? "Enabled" : "Disabled")
+						.leftbound()
 						.create());
 				
 				sc.addElement(infoGroup);

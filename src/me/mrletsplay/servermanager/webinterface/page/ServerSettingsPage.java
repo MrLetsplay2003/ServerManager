@@ -17,16 +17,21 @@ import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.CheckboxValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ElementValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ObjectValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.StringValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceCheckBox;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceElementGroup;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceInputField;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfacePageElement;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceSelect;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceText;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceTitleText;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceVerticalSpacer;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.DefaultLayoutOption;
+import me.mrletsplay.webinterfaceapi.webinterface.page.element.layout.GridLayout;
 
 public class ServerSettingsPage extends WebinterfacePage {
 	
@@ -72,6 +77,24 @@ public class ServerSettingsPage extends WebinterfacePage {
 			v3.put("javaVersion", new ElementValue(jVer));
 			updJ.setOnClickAction(new SendJSAction("server-manager", "updateServerJavaVersion", v3).onSuccess(new ReloadPageAction()));
 			els.add(updJ);
+			
+			WebinterfaceElementGroup chbGrp = new WebinterfaceElementGroup();
+			chbGrp.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("50px", "auto"));
+			
+			WebinterfaceCheckBox autostart = new WebinterfaceCheckBox(server.getMetadata().isAutostart());
+			ObjectValue v4 = new ObjectValue();
+			v4.put("server", new StringValue(serverID));
+			v4.put("autostart", new CheckboxValue(autostart));
+			autostart.setOnChangeAction(new SendJSAction("server-manager", "updateServerAutostart", v4).onError(new ReloadPageAction()));
+			chbGrp.addElement(autostart);
+			
+			chbGrp.addElement(WebinterfaceText.builder()
+					.text("Autostart")
+					.centeredVertically()
+					.leftbound()
+					.create());
+			
+			els.add(chbGrp);
 			
 			els.add(new WebinterfaceVerticalSpacer("30px"));
 			

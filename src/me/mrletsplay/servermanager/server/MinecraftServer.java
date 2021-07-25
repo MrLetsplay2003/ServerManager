@@ -14,6 +14,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import me.mrletsplay.mrcore.io.IOUtils;
+import me.mrletsplay.mrcore.json.JSONObject;
 import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
@@ -175,6 +176,24 @@ public class MinecraftServer {
 	
 	public JavaProcess getProcess() {
 		return process;
+	}
+	
+	public void showTitle(String title, String subtitle) {
+		if(!isRunning()) throw new FriendlyException("Server not running");
+		if(getVersion().ordinal() <= PaperVersion.PAPER_1_12_2.ordinal()) {
+			getProcess().sendLine("title @a title \"" + title.replace("\"", "\\\"") + "\"");
+			if(subtitle != null) getProcess().sendLine("title @a subtitle \"" + subtitle.replace("\"", "\\\"") + "\"");
+		}else {
+			JSONObject o = new JSONObject();
+			o.put("text", title);
+			getProcess().sendLine("title @a title " + o.toString());
+			
+			if(subtitle != null) {
+				JSONObject o2 = new JSONObject();
+				o2.put("text", subtitle);
+				getProcess().sendLine("title @a subtitle " + o2.toString());
+			}
+		}
 	}
 	
 }

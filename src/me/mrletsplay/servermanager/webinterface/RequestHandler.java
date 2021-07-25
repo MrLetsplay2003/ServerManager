@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.cronutils.model.Cron;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import me.mrletsplay.mrcore.http.HttpGet;
@@ -421,14 +422,14 @@ public class RequestHandler implements WebinterfaceActionHandler {
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addRestart")
 	public WebinterfaceResponse addRestart(WebinterfaceRequestEvent event) {
 		String cronString = event.getRequestData().getString("value");
-		String normalizedCronString;
+		Cron cron;
 		try {
-			normalizedCronString  = ScheduledRestart.CRON_PARSER.parse(cronString).validate().asString();
+			cron  = ScheduledRestart.CRON_PARSER.parse(cronString).validate();
 		}catch(IllegalArgumentException e) {
 			return WebinterfaceResponse.error("Invalid cron format");
 		}
-		if(ScheduledRestart.getRestart(normalizedCronString) != null) return WebinterfaceResponse.error("Restart already exists");
-		ScheduledRestart.addRestart(ScheduledRestart.fromCronString(normalizedCronString));
+		if(ScheduledRestart.getRestart(cron.asString()) != null) return WebinterfaceResponse.error("Restart already exists");
+		ScheduledRestart.addRestart(ScheduledRestart.fromCron(cron, true));
 		ServerManager.saveRestarts();
 		return WebinterfaceResponse.success();
 	}

@@ -71,7 +71,7 @@ public class ServerManager {
 		generalCategory.addPage(new VelocitySettingsPage());
 		generalCategory.addPage(new AddJavaVersionPage());
 		
-		executorService = Executors.newScheduledThreadPool(3);
+		executorService = Executors.newScheduledThreadPool(5);
 		
 		loadAndStart();
 		
@@ -80,7 +80,7 @@ public class ServerManager {
 				for(ScheduledRestart r : ScheduledRestart.getRestarts()) {
 					if(ZonedDateTime.now().isAfter(r.getNextExecution())) {
 						Webinterface.getLogger().info("Running scheduled restart for: " + r.getServers().stream().collect(Collectors.joining(", ")));
-						r.run();
+						executorService.execute(() -> r.run());
 						Webinterface.getLogger().info("Scheduled restart finished");
 					}
 				}

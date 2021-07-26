@@ -33,6 +33,7 @@ public class HostnamesPage extends WebinterfacePage {
 	@SuppressWarnings("unchecked")
 	public HostnamesPage() {
 		super("Hostnames", "/sm/hostnames");
+		setIcon("mdi:pencil");
 		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection sc = new WebinterfacePageSection();

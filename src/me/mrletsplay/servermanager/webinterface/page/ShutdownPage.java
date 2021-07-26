@@ -14,6 +14,7 @@ public class ShutdownPage extends WebinterfacePage {
 	
 	public ShutdownPage() {
 		super("Shutdown", "/sm/shutdown");
+		setIcon("mdi:power");
 		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();

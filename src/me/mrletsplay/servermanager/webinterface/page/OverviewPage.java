@@ -29,6 +29,7 @@ public class OverviewPage extends WebinterfacePage {
 	
 	public OverviewPage() {
 		super("Overview", "/sm/overview");
+		setIcon("mdi:monitor-dashboard");
 		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();

@@ -23,6 +23,7 @@ public class JavaVersionsPage extends WebinterfacePage {
 	
 	public JavaVersionsPage() {
 		super("Java Versions", "/sm/java-versions");
+		setIcon("mdi:language-java");
 		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();

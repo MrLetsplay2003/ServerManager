@@ -9,6 +9,7 @@ public class SettingsPage extends WebinterfaceSettingsPage {
 	
 	public SettingsPage() {
 		super("Settings", "/sm/settings", new WebinterfaceSettingsPane(Webinterface.getConfig(), ServerManagerSettings.INSTANCE.getSettingsCategories(), "server-manager", "setSetting"));
+		setIcon("mdi:cog");
 	}
 
 }

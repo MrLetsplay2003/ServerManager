@@ -28,6 +28,7 @@ public class RestartsPage extends WebinterfacePage {
 	
 	public RestartsPage() {
 		super("Scheduled Restarts", "/sm/restarts");
+		setIcon("mdi:timer");
 		getContainerStyle().setProperty("max-width", "900px");
 		
 		WebinterfacePageSection sc = new WebinterfacePageSection();

@@ -13,7 +13,6 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import me.mrletsplay.mrcore.http.HttpGet;
 import me.mrletsplay.mrcore.io.IOUtils;
-import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.servermanager.ServerManager;
 import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
@@ -22,6 +21,7 @@ import me.mrletsplay.servermanager.server.meta.ServerMetadata;
 import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.servermanager.util.PaperVersion;
+import me.mrletsplay.servermanager.util.SetupException;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.servermanager.webinterface.ServerManagerSettings;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
@@ -31,11 +31,11 @@ public class SetupHelper {
 	private static final String
 		LATEST_VELOCITY_URL = "https://versions.velocitypowered.com/download/latest";
 	
-	public static void installVelocity(int port) {
+	public static void installVelocity(int port) throws SetupException {
 		if(VelocityBase.isInstalled()) return;
 		
 		File velocityFolder = VelocityBase.getFolder();
-		if(velocityFolder.exists() && (!velocityFolder.isDirectory() || velocityFolder.list().length > 0)) throw new FriendlyException("Velocity base folder is not empty");
+		if(velocityFolder.exists() && (!velocityFolder.isDirectory() || velocityFolder.list().length > 0)) throw new SetupException("Velocity base folder is not empty");
 		
 		File velocityJar = VelocityBase.getVelocityJarFile();
 		IOUtils.createFile(velocityJar);
@@ -43,7 +43,7 @@ public class SetupHelper {
 		try {
 			new HttpGet(LATEST_VELOCITY_URL).execute().transferTo(velocityJar);
 		} catch (IOException e) {
-			throw new FriendlyException("Failed to download Velocity", e);
+			throw new SetupException("Failed to download Velocity", e);
 		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
@@ -52,7 +52,11 @@ public class SetupHelper {
 		try {
 			velocityProcess.getProcess().waitFor();
 		} catch (InterruptedException e) {
-			throw new FriendlyException(e);
+			throw new SetupException(e);
+		}
+		
+		if(!VelocityBase.getVelocityConfigFile().exists()) {
+			throw new SetupException("Can't find Velocity config file (Did it crash?)");
 		}
 		
 		CommentedFileConfig config = VelocityBase.loadVelocityConfig();
@@ -72,7 +76,7 @@ public class SetupHelper {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, PaperVersion version, JavaVersion javaVersion) {
+	public synchronized static MinecraftServer createNewServer(boolean useTemplate, String id, String name, PaperVersion version, JavaVersion javaVersion) throws SetupException {
 		List<Integer> ports = ServerManager.getServers().stream()
 				.map(s -> s.getPort())
 				.collect(Collectors.toList());
@@ -81,7 +85,7 @@ public class SetupHelper {
 			.filter(i -> !ports.contains(i))
 			.findFirst().orElse(-1);
 		
-		if(port == -1) throw new FriendlyException("No free port");
+		if(port == -1) throw new SetupException("No free port");
 		
 		File serverFolder = new File(Webinterface.getConfig().getSetting(ServerManagerSettings.SERVERS_PATH), id);
 		serverFolder.mkdirs();
@@ -89,7 +93,7 @@ public class SetupHelper {
 		if(useTemplate) {
 			File templateFolder = new File(Webinterface.getConfig().getSetting(ServerManagerSettings.TEMPLATE_PATH));
 			if(templateFolder.exists() && templateFolder.isDirectory()) {
-				// copy files from template...
+				// TODO: copy files from template...
 			}
 		}
 		
@@ -100,7 +104,7 @@ public class SetupHelper {
 		try {
 			new HttpGet(latestPaperURL).execute().transferTo(paperJar);
 		} catch (IOException e) {
-			throw new FriendlyException("Failed to download Paper", e);
+			throw new SetupException("Failed to download Paper", e);
 		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
@@ -109,7 +113,7 @@ public class SetupHelper {
 		try {
 			paperProcess.getProcess().waitFor();
 		} catch (InterruptedException e) {
-			throw new FriendlyException(e);
+			throw new SetupException(e);
 		}
 		
 		CommentedFileConfig velocityConfig = VelocityBase.loadVelocityConfig();
@@ -122,6 +126,11 @@ public class SetupHelper {
 		
 		ServerMetadata m = new ServerMetadata(id, name, version.getVersion(), javaVersion);
 		MinecraftServer server = new MinecraftServer(serverFolder, m);
+		
+		if(!FileHelper.getServerPropertiesFile(serverFolder).exists() || !FileHelper.getPaperConfigFile(serverFolder).exists()) {
+			throw new SetupException("Failed to find server.properties or paper.yml (Did the server crash during setup?)");
+		}
+		
 		server.loadServerProperties()
 			.set("server-port", String.valueOf(port))
 			.set("server-ip", "127.0.0.1")

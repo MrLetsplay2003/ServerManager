@@ -24,6 +24,7 @@ import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.ScheduledRestart;
+import me.mrletsplay.servermanager.util.SetupException;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfaceSettingsPage;
@@ -52,7 +53,14 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		}catch(NumberFormatException e) {
 			return WebinterfaceResponse.error("Invalid port");
 		}
-		SetupHelper.installVelocity(port);
+		
+		try {
+			SetupHelper.installVelocity(port);
+		}catch(SetupException e) {
+			Webinterface.getLogger().error("Failed to install Velocity", e);
+			return WebinterfaceResponse.error("Failed to install Velocity: " + e.getMessage());
+		}
+		
 		return WebinterfaceResponse.success();
 	}
 	
@@ -120,7 +128,14 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(ServerManager.getServer(id) != null || id.equals("base")) return WebinterfaceResponse.error("Server already exists");
 		JavaVersion javaVersion = JavaVersion.getJavaVersion(jVersion);
 		if(javaVersion == null) return WebinterfaceResponse.error("Invalid Java version");
-		SetupHelper.createNewServer(false, id, name, papV, javaVersion);
+		
+		try {
+			SetupHelper.createNewServer(false, id, name, papV, javaVersion);
+		}catch(SetupException e) {
+			Webinterface.getLogger().error("Failed to create server", e);
+			return WebinterfaceResponse.error("Failed to create server: " + e.getMessage());
+		}
+		
 		return WebinterfaceResponse.success();
 	}
 	

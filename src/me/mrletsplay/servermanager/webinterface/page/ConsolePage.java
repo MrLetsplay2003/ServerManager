@@ -2,7 +2,7 @@ package me.mrletsplay.servermanager.webinterface.page;
 
 import java.util.Collections;
 
-import me.mrletsplay.servermanager.webinterface.ConsoleElement;
+import me.mrletsplay.servermanager.webinterface.LogElement;
 import me.mrletsplay.webinterfaceapi.html.HtmlDocument;
 import me.mrletsplay.webinterfaceapi.http.request.HttpRequestContext;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
@@ -22,7 +22,7 @@ public class ConsolePage extends WebinterfacePage {
 		super("Console", "/sm/console", true);
 		
 		WebinterfacePageSection s = new WebinterfacePageSection();
-		ConsoleElement c = new ConsoleElement();
+		LogElement c = new LogElement();
 		c.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 		c.setID("console-area");
 		s.addElement(c);

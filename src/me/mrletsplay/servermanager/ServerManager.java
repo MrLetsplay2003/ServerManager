@@ -32,6 +32,7 @@ import me.mrletsplay.servermanager.webinterface.page.ConsolePage;
 import me.mrletsplay.servermanager.webinterface.page.CreateServerPage;
 import me.mrletsplay.servermanager.webinterface.page.HostnamesPage;
 import me.mrletsplay.servermanager.webinterface.page.JavaVersionsPage;
+import me.mrletsplay.servermanager.webinterface.page.LogPage;
 import me.mrletsplay.servermanager.webinterface.page.OverviewPage;
 import me.mrletsplay.servermanager.webinterface.page.RestartsPage;
 import me.mrletsplay.servermanager.webinterface.page.ServerSettingsPage;
@@ -67,6 +68,7 @@ public class ServerManager {
 		generalCategory.addPage(new CreateServerPage());
 		generalCategory.addPage(new SetupVelocityPage());
 		generalCategory.addPage(new ConsolePage());
+		generalCategory.addPage(new LogPage());
 		generalCategory.addPage(new ServerSettingsPage());
 		generalCategory.addPage(new VelocitySettingsPage());
 		generalCategory.addPage(new AddJavaVersionPage());

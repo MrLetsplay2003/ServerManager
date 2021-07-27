@@ -1,13 +1,21 @@
 package me.mrletsplay.servermanager.server;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
@@ -151,6 +159,40 @@ public class MinecraftServer {
 	
 	public boolean hasJavaVersion() {
 		return getJavaVersion() != null;
+	}
+	
+	public List<String> loadLatestLog() {
+		try {
+			File latestLogFile = new File(serverFolder, "logs/latest.log");
+			if(!latestLogFile.exists()) return Collections.emptyList();
+			return Files.readAllLines(latestLogFile.toPath());
+		} catch (IOException e) {
+			throw new FriendlyException("Failed to load latest log");
+		}
+	}
+	
+	public List<String> getLogFiles() {
+		File logsFolder = new File(serverFolder, "logs");
+		if(!logsFolder.exists()) return Collections.emptyList();
+		return Arrays.asList(logsFolder.list((dir, n) -> n.endsWith(".log") || n.endsWith(".log.gz")));
+	}
+	
+	public List<String> loadLog(String logName) {
+		try {
+			File logFile = new File(serverFolder, "logs/" + logName);
+			if(!logFile.exists()) return Collections.emptyList();
+			if(logFile.getName().endsWith(".log")) {
+				return Files.readAllLines(logFile.toPath());
+			}else if(logFile.getName().endsWith(".log.gz")) {
+				try(BufferedReader r = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(logFile))))) {
+					return r.lines().collect(Collectors.toList());
+				}
+			}else {
+				return Collections.emptyList();
+			}
+		} catch (IOException e) {
+			throw new FriendlyException("Failed to load latest log");
+		}
 	}
 	
 	public void start() {

@@ -90,6 +90,14 @@ public class ServerManager {
 				Webinterface.getLogger().error("Failed to run scheduled restarts", e);
 			}
 		}, 1, 1, TimeUnit.MINUTES);
+		
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			for(MinecraftServer s : servers) {
+				if(!s.isRunning()) continue;
+				System.out.println("Stopping server " + s.getID());
+				s.stop();
+			}
+		}, "Shutdown-Servers"));
 	}
 	
 	private static void loadAndStart() {

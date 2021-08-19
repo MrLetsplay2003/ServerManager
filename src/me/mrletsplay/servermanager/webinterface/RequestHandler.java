@@ -12,6 +12,8 @@ import com.cronutils.model.Cron;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import me.mrletsplay.mrcore.http.HttpGet;
+import me.mrletsplay.mrcore.http.HttpRequest;
+import me.mrletsplay.mrcore.http.HttpResult;
 import me.mrletsplay.mrcore.io.IOUtils;
 import me.mrletsplay.mrcore.json.JSONArray;
 import me.mrletsplay.mrcore.json.JSONObject;
@@ -21,6 +23,7 @@ import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.MinecraftServer;
 import me.mrletsplay.servermanager.server.SetupHelper;
 import me.mrletsplay.servermanager.server.VelocityBase;
+import me.mrletsplay.servermanager.server.whitelist.ServerWhitelist;
 import me.mrletsplay.servermanager.util.PaperAPI;
 import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.ScheduledRestart;
@@ -286,6 +289,30 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(s == null) return WebinterfaceResponse.error("Invalid server");
 		s.getMetadata().setAutostart(autostart);
 		s.saveMetadata();
+		
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "addToServerWhitelist")
+	public WebinterfaceResponse addToServerWhitelist(WebinterfaceRequestEvent event) {
+		JSONObject v = event.getRequestData().getJSONObject("value");
+		String server = v.getString("server");
+		String user = v.getString("user");
+		MinecraftServer s = ServerManager.getServer(server);
+		if(s == null) return WebinterfaceResponse.error("Invalid server");
+		
+		if(!user.matches("[a-zA-z0-9_]{3,16}")) return WebinterfaceResponse.error("Invalid username");
+		
+		HttpResult r = HttpRequest.createGet("https://api.mojang.com/users/profiles/minecraft/" + user).execute();
+		if(r.asRaw().length == 0) return WebinterfaceResponse.error("User doesn't exist");
+		JSONObject u = r.asJSONObject();
+		
+		ServerWhitelist w = s.loadWhitelist();
+		w.addWhitelistedUser(u.getString("id").replaceFirst(
+		        "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5" 
+			    ), u.getString("name"));
+		w.save();
+		if(s.isRunning()) s.getProcess().sendLine("whitelist reload");
 		
 		return WebinterfaceResponse.success();
 	}

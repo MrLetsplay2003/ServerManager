@@ -28,6 +28,7 @@ import me.mrletsplay.servermanager.process.JavaProcess;
 import me.mrletsplay.servermanager.process.JavaVersion;
 import me.mrletsplay.servermanager.server.meta.MetadataHelper;
 import me.mrletsplay.servermanager.server.meta.ServerMetadata;
+import me.mrletsplay.servermanager.server.whitelist.ServerWhitelist;
 import me.mrletsplay.servermanager.util.FileHelper;
 import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
@@ -111,6 +112,10 @@ public class MinecraftServer {
 		return new ServerPropertiesFile(FileHelper.getServerPropertiesFile(serverFolder));
 	}
 	
+	public ServerWhitelist loadWhitelist() {
+		return new ServerWhitelist(FileHelper.getWhitelistFile(serverFolder));
+	}
+	
 	public Map<String, Object> loadPaperConfig() {
 		try {
 			Map<String, Object> map = new Yaml().load(new FileReader(FileHelper.getPaperConfigFile(serverFolder)));
@@ -181,6 +186,7 @@ public class MinecraftServer {
 		try {
 			File logFile = new File(serverFolder, "logs/" + logName);
 			if(!logFile.exists()) return Collections.emptyList();
+			if(!logFile.toPath().normalize().startsWith(serverFolder.toPath())) return Collections.emptyList();
 			if(logFile.getName().endsWith(".log")) {
 				return Files.readAllLines(logFile.toPath());
 			}else if(logFile.getName().endsWith(".log.gz")) {

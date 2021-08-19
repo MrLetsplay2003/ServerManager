@@ -96,6 +96,17 @@ public class ServerSettingsPage extends WebinterfacePage {
 			
 			els.add(chbGrp);
 			
+			WebinterfaceInputField whl = new WebinterfaceInputField("Username");
+			whl.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
+			els.add(whl);
+			
+			WebinterfaceButton addWhl = new WebinterfaceButton("Add to Whitelist");
+			ObjectValue v5 = new ObjectValue();
+			v5.put("server", new StringValue(serverID));
+			v5.put("user", new ElementValue(whl));
+			addWhl.setOnClickAction(new SendJSAction("server-manager", "addToServerWhitelist", v5));
+			els.add(addWhl);
+			
 			els.add(new WebinterfaceVerticalSpacer("30px"));
 			
 			els.add(WebinterfaceTitleText.builder()

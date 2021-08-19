@@ -69,7 +69,7 @@ public class HostnamesPage extends WebinterfacePage {
 				WebinterfaceElementGroup grpI = new WebinterfaceElementGroup();
 				grpI.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("min-content", "auto", "min-content", "min-content", "min-content"));
 				
-				WebinterfaceTitleText tt = new WebinterfaceTitleText("Servers");
+				WebinterfaceTitleText tt = new WebinterfaceTitleText("Join Order");
 				tt.addLayoutOptions(DefaultLayoutOption.LEFTBOUND, DefaultLayoutOption.CENTER_VERTICALLY, DefaultLayoutOption.FULL_WIDTH);
 				grpI.addElement(tt);
 				
@@ -88,6 +88,7 @@ public class HostnamesPage extends WebinterfacePage {
 						.text(name)
 						.noLineBreaks()
 						.leftbound()
+						.centeredVertically()
 						.create());
 					
 					grpI.addElement(new WebinterfaceVerticalSpacer("0px"));

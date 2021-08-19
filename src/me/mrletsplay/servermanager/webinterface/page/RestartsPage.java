@@ -82,6 +82,7 @@ public class RestartsPage extends WebinterfacePage {
 						.text(name)
 						.noLineBreaks()
 						.leftbound()
+						.centeredVertically()
 						.create());
 					
 					grpI.addElement(new WebinterfaceVerticalSpacer("0px"));

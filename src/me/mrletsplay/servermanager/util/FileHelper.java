@@ -27,6 +27,10 @@ public class FileHelper {
 		return new File(serverFolder, "server.properties");
 	}
 	
+	public static File getWhitelistFile(File serverFolder) {
+		return new File(serverFolder, "whitelist.json");
+	}
+	
 	public static File getServerJarFile(File serverFolder) {
 		return new File(serverFolder, "paper.jar");
 	}

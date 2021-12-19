@@ -17,6 +17,7 @@ public enum PaperVersion {
 	PAPER_1_15_2("1.15.2"),
 	PAPER_1_16_5("1.16.5"),
 	PAPER_1_17_1("1.17.1"),
+	PAPER_1_18_1("1.18.1")
 	;
 	
 	private final String version;

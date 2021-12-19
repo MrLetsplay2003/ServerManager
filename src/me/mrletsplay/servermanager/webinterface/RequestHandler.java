@@ -50,6 +50,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		JSONObject v = event.getRequestData().getJSONObject("value");
 		String portStr = v.getString("port");
 		if(portStr.isBlank()) return WebinterfaceResponse.error("Port must be set");
+		String version = v.getString("version");
 		int port;
 		try {
 			port = Integer.parseInt(portStr);
@@ -58,7 +59,7 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		}
 		
 		try {
-			SetupHelper.installVelocity(port);
+			SetupHelper.installVelocity(version, port);
 		}catch(SetupException e) {
 			Webinterface.getLogger().error("Failed to install Velocity", e);
 			return WebinterfaceResponse.error("Failed to install Velocity: " + e.getMessage());
@@ -244,6 +245,35 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		
 		return WebinterfaceResponse.success();
 	}
+	
+//	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateAnyServerVersion")
+//	public WebinterfaceResponse updateAnyServerVersion(WebinterfaceRequestEvent event) {
+//		JSONObject v = event.getRequestData().getJSONObject("value");
+//		String server = v.getString("server");
+//		String version = v.getString("version");
+//		
+//		MinecraftServer s = ServerManager.getServer(server);
+//		if(s == null) return WebinterfaceResponse.error("Invalid server");
+//		
+//		boolean running = s.isRunning();
+//		if(running) s.stop();
+//		
+//		File paperJar = new File(s.getServerFolder(), "paper.jar");
+//		String latestPaperURL = PaperAPI.getLatestBuildURL(version);
+//		if(latestPaperURL == null) return WebinterfaceResponse.error("Invalid paper version");
+//		try {
+//			new HttpGet(latestPaperURL).execute().transferTo(paperJar);
+//		} catch (IOException e) {
+//			throw new FriendlyException("Failed to download Paper", e);
+//		}
+//		
+//		s.getMetadata().setVersion(version);
+//		s.saveMetadata();
+//		
+//		if(running) s.start();
+//		
+//		return WebinterfaceResponse.success();
+//	}
 	
 	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateServerJavaVersion")
 	public WebinterfaceResponse updateServerJavaVersion(WebinterfaceRequestEvent event) {
@@ -553,6 +583,18 @@ public class RequestHandler implements WebinterfaceActionHandler {
 		if(idx == r.getServers().size() - 1) return WebinterfaceResponse.error("Server is already at the top");
 		Collections.swap(r.getServers(), idx, idx + 1);
 		ServerManager.saveRestarts();
+		return WebinterfaceResponse.success();
+	}
+	
+	@WebinterfaceHandler(requestTarget = "server-manager", requestTypes = "updateVelocity")
+	public WebinterfaceResponse updateVelocity(WebinterfaceRequestEvent event) {
+		JSONObject value = event.getRequestData().getJSONObject("value");
+		String version = value.getString("version");
+		
+		VelocityBase.stop();
+		SetupHelper.downloadVelocity(version);
+		VelocityBase.start();
+		
 		return WebinterfaceResponse.success();
 	}
 

@@ -9,7 +9,7 @@ import me.mrletsplay.servermanager.util.PaperVersion;
 import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
-import me.mrletsplay.webinterfaceapi.webinterface.page.action.HideLoadingScreenAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.LoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.RedirectAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
@@ -61,9 +61,9 @@ public class CreateServerPage extends WebinterfacePage {
 			v.put("name", new ElementValue(name));
 			v.put("version", new ElementValue(version));
 			v.put("javaVersion", new ElementValue(javaVersion));
-			b.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "createServer", v)
+			b.setOnClickAction(MultiAction.of(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "createServer", v)
 					.onSuccess(new RedirectAction("/"))
-					.onError(new HideLoadingScreenAction())));
+					.onError(LoadingScreenAction.hide())));
 			els.add(b);
 			
 			return els;

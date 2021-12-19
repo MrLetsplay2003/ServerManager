@@ -2,7 +2,7 @@ package me.mrletsplay.servermanager.webinterface.page;
 
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
-import me.mrletsplay.webinterfaceapi.webinterface.page.action.HideLoadingScreenAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.LoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.RedirectAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
@@ -22,12 +22,12 @@ public class ShutdownPage extends WebinterfacePage {
 		
 		WebinterfaceButton reload = new WebinterfaceButton("Reload everything");
 		reload.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-		reload.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "reloadEverything", null).onSuccess(new RedirectAction("/")).onError(new HideLoadingScreenAction())));
+		reload.setOnClickAction(MultiAction.of(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "reloadEverything", null).onSuccess(new RedirectAction("/")).onError(LoadingScreenAction.hide())));
 		s.addElement(reload);
 		
 		WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown everything");
 		shutdown.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-		shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "shutdownEverything", null).onSuccess(new RedirectAction("/")).onError(new HideLoadingScreenAction())));
+		shutdown.setOnClickAction(MultiAction.of(LoadingScreenAction.show(), new SendJSAction("server-manager", "shutdownEverything", null).onSuccess(new RedirectAction("/")).onError(LoadingScreenAction.hide())));
 		s.addElement(shutdown);
 		
 		addSection(s);

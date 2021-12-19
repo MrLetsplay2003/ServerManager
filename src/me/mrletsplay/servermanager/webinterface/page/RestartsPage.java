@@ -64,14 +64,14 @@ public class RestartsPage extends WebinterfacePage {
 				grpI.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, new GridLayout("min-content", "auto", "min-content", "min-content", "min-content"));
 				
 				WebinterfaceTitleText tt = new WebinterfaceTitleText("Servers");
-				tt.addLayoutOptions(DefaultLayoutOption.LEFTBOUND, DefaultLayoutOption.CENTER_VERTICALLY, DefaultLayoutOption.FULL_WIDTH);
+				tt.addLayoutOptions(DefaultLayoutOption.LEFTBOUND_TEXT, DefaultLayoutOption.FULL_WIDTH);
 				grpI.addElement(tt);
 				
 				if(servers.isEmpty()) {
 					grpI.addElement(WebinterfaceText.builder()
 							.text("(none)")
 							.fullWidth()
-							.leftbound()
+							.leftboundText()
 							.create());
 				}
 				
@@ -81,8 +81,7 @@ public class RestartsPage extends WebinterfacePage {
 					grpI.addElement(WebinterfaceText.builder()
 						.text(name)
 						.noLineBreaks()
-						.leftbound()
-						.centeredVertically()
+						.leftboundText()
 						.create());
 					
 					grpI.addElement(new WebinterfaceVerticalSpacer("0px"));

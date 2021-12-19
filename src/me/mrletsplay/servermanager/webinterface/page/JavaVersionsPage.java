@@ -35,7 +35,7 @@ public class JavaVersionsPage extends WebinterfacePage {
 			
 			for(JavaVersion version : JavaVersion.getJavaVersions()) {
 				WebinterfaceTitleText h = new WebinterfaceTitleText(version.getName() + " (" + version.getID() + ")");
-				h.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, DefaultLayoutOption.CENTER_VERTICALLY, DefaultLayoutOption.LEFTBOUND);
+				h.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH, DefaultLayoutOption.LEFTBOUND_TEXT);
 				els.add(h);
 				
 				WebinterfaceTitleText tt = new WebinterfaceTitleText("Java Path");
@@ -43,7 +43,7 @@ public class JavaVersionsPage extends WebinterfacePage {
 				els.add(tt);
 				
 				WebinterfaceText onOff = new WebinterfaceText(version.getJavaPath());
-				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND);
+				onOff.addLayoutOptions(DefaultLayoutOption.LEFTBOUND_TEXT);
 				els.add(onOff);
 				
 				if(!version.isSystemDefault()) {

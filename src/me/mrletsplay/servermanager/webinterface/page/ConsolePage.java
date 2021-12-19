@@ -33,7 +33,7 @@ public class ConsolePage extends WebinterfacePage {
 			return ctx.getClientHeader().getPath().getQueryParameterValue("server");
 		}));
 		v.put("command", new ElementValue(i));
-		i.setOnChangeAction(new MultiAction(new SendJSAction("server-manager", "executeConsoleCommand", v), new SetValueAction(i, new StringValue(""))));
+		i.setOnChangeAction(MultiAction.of(new SendJSAction("server-manager", "executeConsoleCommand", v), new SetValueAction(i, new StringValue(""))));
 		i.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
 		s.addElement(i);
 		

@@ -10,11 +10,11 @@ import me.mrletsplay.servermanager.server.VelocityBase;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ConfirmAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.LoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.RedirectAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
-import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.StringValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceButton;
 import me.mrletsplay.webinterfaceapi.webinterface.page.element.WebinterfaceElementGroup;
@@ -51,33 +51,33 @@ public class OverviewPage extends WebinterfacePage {
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Running")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(VelocityBase.isRunning() ? "Yes" : "No")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Forwarding Mode")
-						.leftbound()
+						.leftboundText()
 						.noLineBreaks()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(VelocityBase.getForwardingMode().getFriendlyName())
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Autostart")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(VelocityBase.isAutostart() ? "Enabled" : "Disabled")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				els.add(infoGroup);
@@ -98,7 +98,7 @@ public class OverviewPage extends WebinterfacePage {
 				btnGroup.addElement(start);
 				
 				WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown");
-				shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "stopVelocity", null).onSuccess(new ReloadPageAction())));
+				shutdown.setOnClickAction(MultiAction.of(LoadingScreenAction.show(), new SendJSAction("server-manager", "stopVelocity", null).onSuccess(new ReloadPageAction())));
 				btnGroup.addElement(shutdown);
 				
 				WebinterfaceButton createServer = new WebinterfaceButton("Create Server");
@@ -127,66 +127,66 @@ public class OverviewPage extends WebinterfacePage {
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Running")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(server.isRunning() ? "Yes" : "No")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Version")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(server.getVersion().getVersion())
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Memory Limit")
-						.leftbound()
+						.leftboundText()
 						.noLineBreaks()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(server.getMetadata().getMemoryLimitMiB() + " MiB")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Port")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(String.valueOf(server.getPort()))
-						.leftbound()
+						.leftboundText()
 						.create());
 
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Java Version")
-						.leftbound()
+						.leftboundText()
 						.noLineBreaks()
 						.create());
 				
 				JavaVersion j = server.getJavaVersion();
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(j == null ? "[MISSING]" : j.getName())
-						.leftbound()
+						.leftboundText()
 						.noLineBreaks()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceTitleText.builder()
 						.text("Autostart")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				infoGroup.addElement(WebinterfaceText.builder()
 						.text(server.getMetadata().isAutostart() ? "Enabled" : "Disabled")
-						.leftbound()
+						.leftboundText()
 						.create());
 				
 				sc.addElement(infoGroup);
@@ -207,14 +207,14 @@ public class OverviewPage extends WebinterfacePage {
 				btnGroup.addElement(start);
 				
 				WebinterfaceButton shutdown = new WebinterfaceButton("Shutdown");
-				shutdown.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "stopServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction())));
+				shutdown.setOnClickAction(MultiAction.of(LoadingScreenAction.show(), new SendJSAction("server-manager", "stopServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction())));
 				btnGroup.addElement(shutdown);
 				
 				btnGroup.addElement(new WebinterfaceVerticalSpacer("30px"));
 				
 				WebinterfaceButton delete = new WebinterfaceButton("Delete");
 				delete.addLayoutOptions(DefaultLayoutOption.FULL_WIDTH);
-				delete.setOnClickAction(new ConfirmAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "deleteServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction()))));
+				delete.setOnClickAction(new ConfirmAction(MultiAction.of(LoadingScreenAction.show(), new SendJSAction("server-manager", "deleteServer", new StringValue(server.getID())).onSuccess(new ReloadPageAction()))));
 				btnGroup.addElement(delete);
 				
 				sc.addElement(btnGroup);

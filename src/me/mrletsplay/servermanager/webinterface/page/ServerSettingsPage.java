@@ -12,11 +12,10 @@ import me.mrletsplay.servermanager.util.VelocityForwardingMode;
 import me.mrletsplay.webinterfaceapi.http.request.HttpRequestContext;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePage;
 import me.mrletsplay.webinterfaceapi.webinterface.page.WebinterfacePageSection;
-import me.mrletsplay.webinterfaceapi.webinterface.page.action.HideLoadingScreenAction;
+import me.mrletsplay.webinterfaceapi.webinterface.page.action.LoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.MultiAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.ReloadPageAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.SendJSAction;
-import me.mrletsplay.webinterfaceapi.webinterface.page.action.ShowLoadingScreenAction;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.CheckboxValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ElementValue;
 import me.mrletsplay.webinterfaceapi.webinterface.page.action.value.ObjectValue;
@@ -90,8 +89,7 @@ public class ServerSettingsPage extends WebinterfacePage {
 			
 			chbGrp.addElement(WebinterfaceText.builder()
 					.text("Autostart")
-					.centeredVertically()
-					.leftbound()
+					.leftboundText()
 					.create());
 			
 			els.add(chbGrp);
@@ -112,7 +110,13 @@ public class ServerSettingsPage extends WebinterfacePage {
 			els.add(WebinterfaceTitleText.builder()
 					.text("Danger Zone")
 					.fullWidth()
-					.leftbound()
+					.leftboundText()
+					.create());
+			
+			els.add(WebinterfaceText.builder()
+					.text("Update server version")
+					.fullWidth()
+					.leftboundText()
 					.create());
 			
 			PaperVersion serverVersion = server.getVersion();
@@ -127,12 +131,32 @@ public class ServerSettingsPage extends WebinterfacePage {
 			if(modernOnly) ver.addOption("Enable legacy forwarding for more options", null, false, false);
 			els.add(ver);
 			
-			WebinterfaceButton upd = new WebinterfaceButton("Update Paper Version");
+			WebinterfaceButton upd = new WebinterfaceButton("Update");
 			ObjectValue v = new ObjectValue();
 			v.put("server", new StringValue(serverID));
 			v.put("version", new ElementValue(ver));
-			upd.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
+			upd.setOnClickAction(MultiAction.of(LoadingScreenAction.show(), new SendJSAction("server-manager", "updateServerVersion", v).onSuccess(new ReloadPageAction()).onError(LoadingScreenAction.hide())));
 			els.add(upd);
+			
+//			els.add(WebinterfaceText.builder()
+//					.text("Update to any Paper version (not recommended)")
+//					.fullWidth()
+//					.leftboundText()
+//					.create());
+//
+//			WebinterfaceSelect ver2 = new WebinterfaceSelect();
+//			ver2.addLayoutOptions(DefaultLayoutOption.FULL_NOT_LAST_COLUMN);
+//			for(String version : PaperAPI.getPaperVersions()) {
+//				ver2.addOption("Paper " + version, version);
+//			}
+//			els.add(ver2);
+//			
+//			WebinterfaceButton upd2 = new WebinterfaceButton("Update");
+//			ObjectValue val = new ObjectValue();
+//			val.put("server", new StringValue(serverID));
+//			val.put("version", new ElementValue(ver2));
+//			upd2.setOnClickAction(new MultiAction(new ShowLoadingScreenAction(), new SendJSAction("server-manager", "updateAnyServerVersion", val).onSuccess(new ReloadPageAction()).onError(new HideLoadingScreenAction())));
+//			els.add(upd2);
 			
 			return els;
 		});

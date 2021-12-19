@@ -28,23 +28,15 @@ import me.mrletsplay.webinterfaceapi.webinterface.Webinterface;
 
 public class SetupHelper {
 	
-	private static final String
-		LATEST_VELOCITY_URL = "https://versions.velocitypowered.com/download/latest";
-	
-	public static void installVelocity(int port) throws SetupException {
+	public static void installVelocity(String version, int port) throws SetupException {
 		if(VelocityBase.isInstalled()) return;
 		
+		downloadVelocity(version);
+
 		File velocityFolder = VelocityBase.getFolder();
 		if(velocityFolder.exists() && (!velocityFolder.isDirectory() || velocityFolder.list().length > 0)) throw new SetupException("Velocity base folder is not empty");
 		
 		File velocityJar = VelocityBase.getVelocityJarFile();
-		IOUtils.createFile(velocityJar);
-		
-		try {
-			new HttpGet(LATEST_VELOCITY_URL).execute().transferTo(velocityJar);
-		} catch (IOException e) {
-			throw new SetupException("Failed to download Velocity", e);
-		}
 		
 		// Start velocity process and immediately shut it down again to create configuration files
 		JavaProcess velocityProcess = JavaProcess.startProcess(JavaVersion.SYSTEM, velocityJar, velocityFolder, 512, null);
@@ -73,6 +65,19 @@ public class SetupHelper {
 		
 		config.save();
 		config.close();
+	}
+	
+	public static void downloadVelocity(String version) throws SetupException {
+		File velocityJar = VelocityBase.getVelocityJarFile();
+		IOUtils.createFile(velocityJar);
+		
+		try {
+			String velLink = PaperAPI.getVelocityBuildURL(version);
+			if(velLink == null) throw new SetupException("Invalid Velocity version");
+			new HttpGet(velLink).execute().transferTo(velocityJar);
+		} catch (IOException e) {
+			throw new SetupException("Failed to download Velocity", e);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")

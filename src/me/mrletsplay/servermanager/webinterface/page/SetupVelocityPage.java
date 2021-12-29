@@ -38,6 +38,7 @@ public class SetupVelocityPage extends WebinterfacePage {
 		WebinterfaceButton b = new WebinterfaceButton("Install");
 		ObjectValue v = new ObjectValue();
 		v.put("port", new ElementValue(port));
+		v.put("version", new ElementValue(ver));
 		b.setOnClickAction(new SendJSAction("server-manager", "installVelocity", v).onSuccess(new RedirectAction("/")));
 		s.addElement(b);
 		

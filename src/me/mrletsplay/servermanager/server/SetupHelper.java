@@ -30,11 +30,11 @@ public class SetupHelper {
 	
 	public static void installVelocity(String version, int port) throws SetupException {
 		if(VelocityBase.isInstalled()) return;
-		
-		downloadVelocity(version);
 
 		File velocityFolder = VelocityBase.getFolder();
 		if(velocityFolder.exists() && (!velocityFolder.isDirectory() || velocityFolder.list().length > 0)) throw new SetupException("Velocity base folder is not empty");
+		
+		downloadVelocity(version);
 		
 		File velocityJar = VelocityBase.getVelocityJarFile();
 		
